@@ -1,6 +1,6 @@
 CC ?= gcc
 CXX ?= g++
-CFLAGS ?= -O2 -Wall -Wextra -Wpedantic -Werror
+CFLAGS ?= -O2 -fno-stack-protector -Wall -Wextra -Wpedantic -Werror
 
 src/multfly.so: src/multfly.o
 	$(CC) -shared $^ -o $@
