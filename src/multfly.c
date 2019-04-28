@@ -28,7 +28,8 @@ static void multfly_chacha8_permute(uint32_t v[16]) {
 	}
 }
 
-static multfly_key multfly_init_impl(const uint32_t seed[8], uint64_t global_seed, uint64_t global_ctr, uint32_t v[16]) {
+static multfly_key multfly_init_impl(const uint32_t seed[8], uint64_t global_seed, uint64_t global_ctr, uint32_t residual[8]) {
+	uint32_t v[16];
 	// Use Chacha IV: "expand 32-byte k"
 	v[0]  = UINT32_C(0x61707865);
 	v[1]  = UINT32_C(0x3320646E);
@@ -48,6 +49,13 @@ static multfly_key multfly_init_impl(const uint32_t seed[8], uint64_t global_see
 	v[15] = (uint32_t)(global_seed >> 32);
 
 	multfly_chacha8_permute(v);
+
+	if (residual != 0) {
+		for (int i = 0; i < 8; i++) {
+			residual[i] = v[i];
+		}
+	}
+
 	multfly_key newkey;
 	for (int i = 0; i < 8; i++) {
 		newkey.k[i] = v[i + 8];
@@ -56,17 +64,11 @@ static multfly_key multfly_init_impl(const uint32_t seed[8], uint64_t global_see
 }
 
 multfly_key multfly_init(const uint32_t seed[8], uint64_t global_seed, uint64_t global_ctr) {
-	uint32_t v[16];
-	return multfly_init_impl(seed, global_seed, global_ctr, v);
+	return multfly_init_impl(seed, global_seed, global_ctr, 0);
 }
 
 multfly_key multfly_split(multfly_key *key) {
-	uint32_t v[16];
-	multfly_key newkey = multfly_init_impl(&key->k[0], 0, 0, v);
-	for (int i = 0; i < 8; i++) {
-		key->k[i] = v[i];
-	}
-	return newkey;
+	return multfly_init_impl(&key->k[0], 0, 0, &key->k[0]);
 }
 
 static void multfly_gen_qround(uint32_t us[4], uint32_t vs[4], uint32_t i) {
@@ -134,23 +136,25 @@ static void multfly_gen_impl(const multfly_key *key, uint64_t ctr, uint32_t resu
 	result[3] = vs[3];
 }
 
+static void multfly_gen_loop(const multfly_key *key, uint64_t ctr, uint32_t *array, uint64_t len) {
+	for (uint64_t i = 0; i < len; i += 4, ctr += 4) {
+		multfly_gen_impl(key, ctr, array + i);
+	}
+}
+
 void multfly_gen(const multfly_key *key, uint64_t ctr, uint32_t *array, uint64_t len) {
 	ctr &= -4;
 	len &= -4;
 
-	for (uint64_t i = 0; i < len; i += 4, ctr += 4) {
-		multfly_gen_impl(key, ctr, array + i);
-	}
+	multfly_gen_loop(key, ctr, array, len);
 }
 
 void multfly_gen128(const multfly_key *key, uint64_t ctr, uint32_t *array[4], uint64_t len) {
 	ctr &= -4;
 	len &= -4;
 
-	for (uint64_t i = 0; i < len; i += 4, ctr += 4) {
-		multfly_gen_impl(key, ctr + 0, array[0] + i);
-		multfly_gen_impl(key, ctr + 1, array[1] + i);
-		multfly_gen_impl(key, ctr + 2, array[2] + i);
-		multfly_gen_impl(key, ctr + 3, array[3] + i);
-	}
+	multfly_gen_loop(key, ctr + 0, array[0], len);
+	multfly_gen_loop(key, ctr + 1, array[1], len);
+	multfly_gen_loop(key, ctr + 2, array[2], len);
+	multfly_gen_loop(key, ctr + 3, array[3], len);
 }
