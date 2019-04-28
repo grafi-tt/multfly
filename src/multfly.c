@@ -9,7 +9,8 @@ static const uint32_t multfly_chacha_iv[4] = {
 	UINT32_C(0x61707865), UINT32_C(0x3320646E), UINT32_C(0x79622D32), UINT32_C(0x6B206574)
 };
 
-static void multfly_chacha_qround(uint32_t v[16], int a, int b, int c, int d) { v[a] += v[b];
+static void multfly_chacha_qround(uint32_t v[16], int a, int b, int c, int d) {
+	v[a] += v[b];
 	v[d] = multfly_rotl(v[d] ^ v[a], 16);
 	v[c] += v[d];
 	v[b] = multfly_rotl(v[b] ^ v[c], 12);
@@ -92,41 +93,69 @@ multfly_key multfly_split(multfly_key *key) {
 	return newkey;
 }
 
-static void multfly_gen_impl(const multfly_key *key, uint64_t ctr, uint32_t result[4]) {
+static void multfly_gen_qround(uint32_t us[4], uint32_t vs[4], uint32_t i) {
 	uint32_t mulu = UINT32_C(2718281829);
 	uint32_t mulv = UINT32_C(3141592653);
 	uint32_t incr = UINT32_C(0x33123456);
 
+	uint32_t u = us[i];
+	uint32_t v = vs[i];
+
+	u += multfly_rotl(incr, i);
+	v += u;
+	v ^= multfly_rotl(u, 8);
+	v *= mulv;
+	u ^= multfly_rotl(v, 9);
+	u += v;
+	u *= mulu;
+	v ^= multfly_rotl(u, 16);
+	v += u;
+
+	us[i] = u;
+	vs[i] = v;
+}
+
+static void multfly_gen_swap(uint32_t us[4], uint32_t i, uint32_t j) {
+	uint32_t tmp = us[i];
+	us[i] = us[j];
+	us[j] = tmp;
+}
+
+static void multfly_gen_impl(const multfly_key *key, uint64_t ctr, uint32_t result[4]) {
 	uint32_t us[4];
-	uint32_t vs[4][4];
+	uint32_t vs[4];
 
 	for (int i = 0; i < 4; i++) {
 		us[i] = key->k[i] ^ (uint32_t)ctr;
-		vs[0][i] = key->k[i + 4] ^ (uint32_t)(ctr >> 32);
+		vs[i] = key->k[i + 4] ^ (uint32_t)(ctr >> 32);
 		++ctr;
 	}
 
-	for (int r = 0; r < 3; r++) {
-		for (int i = 0; i < 4; i++) {
-			uint32_t u = us[i];
-			uint32_t v = vs[r][i ^ r];
-			u += multfly_rotl(incr, i);
-			v += u;
-			v ^= multfly_rotl(u, 8);
-			v *= mulv;
-			u ^= multfly_rotl(v, 9);
-			u += v;
-			u *= mulu;
-			v ^= multfly_rotl(u, 16);
-			v += u;
-			us[i] = u;
-			vs[r + 1][i] = v;
-		}
-	}
+	multfly_gen_qround(us, vs, 0);
+	multfly_gen_qround(us, vs, 1);
+	multfly_gen_qround(us, vs, 2);
+	multfly_gen_qround(us, vs, 3);
 
-	for (int i = 0; i < 4; i++) {
-		result[i] = vs[3][i];
-	}
+	multfly_gen_swap(us, 0, 1);
+	multfly_gen_swap(us, 2, 3);
+
+	multfly_gen_qround(us, vs, 0);
+	multfly_gen_qround(us, vs, 1);
+	multfly_gen_qround(us, vs, 2);
+	multfly_gen_qround(us, vs, 3);
+
+	multfly_gen_swap(us, 0, 2);
+	multfly_gen_swap(us, 1, 3);
+
+	multfly_gen_qround(us, vs, 0);
+	multfly_gen_qround(us, vs, 1);
+	multfly_gen_qround(us, vs, 2);
+	multfly_gen_qround(us, vs, 3);
+
+	result[0] = vs[0];
+	result[1] = vs[1];
+	result[2] = vs[2];
+	result[3] = vs[3];
 }
 
 void multfly_gen(const multfly_key *key, uint64_t ctr, uint32_t *array, uint64_t len) {
