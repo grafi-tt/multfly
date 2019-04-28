@@ -4,11 +4,6 @@ static uint32_t multfly_rotl(uint32_t k, int n) {
 	return (k << n) | (k >> (32 - n));
 }
 
-static const uint32_t multfly_chacha_iv[4] = {
-	// "expand 32-byte k"
-	UINT32_C(0x61707865), UINT32_C(0x3320646E), UINT32_C(0x79622D32), UINT32_C(0x6B206574)
-};
-
 static void multfly_chacha_qround(uint32_t v[16], int a, int b, int c, int d) {
 	v[a] += v[b];
 	v[d] = multfly_rotl(v[d] ^ v[a], 16);
@@ -33,12 +28,12 @@ static void multfly_chacha8_permute(uint32_t v[16]) {
 	}
 }
 
-multfly_key multfly_init(const uint32_t seed[8], uint64_t global_seed, uint64_t global_ctr) {
-	uint32_t v[16];
-	v[0]  = multfly_chacha_iv[0];
-	v[1]  = multfly_chacha_iv[1];
-	v[2]  = multfly_chacha_iv[2];
-	v[3]  = multfly_chacha_iv[3];
+static multfly_key multfly_init_impl(const uint32_t seed[8], uint64_t global_seed, uint64_t global_ctr, uint32_t v[16]) {
+	// Use Chacha IV: "expand 32-byte k"
+	v[0]  = UINT32_C(0x61707865);
+	v[1]  = UINT32_C(0x3320646E);
+	v[2]  = UINT32_C(0x79622D32);
+	v[3]  = UINT32_C(0x6B206574);
 	v[4]  = seed[0];
 	v[5]  = seed[1];
 	v[6]  = seed[2];
@@ -53,42 +48,23 @@ multfly_key multfly_init(const uint32_t seed[8], uint64_t global_seed, uint64_t 
 	v[15] = (uint32_t)(global_seed >> 32);
 
 	multfly_chacha8_permute(v);
-
-	multfly_key key;
+	multfly_key newkey;
 	for (int i = 0; i < 8; i++) {
-		key.k[i] = v[i];
+		newkey.k[i] = v[i + 8];
 	}
-	return key;
+	return newkey;
+}
+
+multfly_key multfly_init(const uint32_t seed[8], uint64_t global_seed, uint64_t global_ctr) {
+	uint32_t v[16];
+	return multfly_init_impl(seed, global_seed, global_ctr, v);
 }
 
 multfly_key multfly_split(multfly_key *key) {
 	uint32_t v[16];
-	v[0]  = multfly_chacha_iv[0];
-	v[1]  = multfly_chacha_iv[1];
-	v[2]  = multfly_chacha_iv[2];
-	v[3]  = multfly_chacha_iv[3];
-	v[4]  = key->k[0];
-	v[5]  = key->k[1];
-	v[6]  = key->k[2];
-	v[7]  = key->k[3];
-	v[8]  = key->k[4];
-	v[9]  = key->k[5];
-	v[10] = key->k[6];
-	v[11] = key->k[7];
-	v[12] = 0;
-	v[13] = 0;
-	v[14] = 0;
-	v[15] = 0;
-
-	multfly_chacha8_permute(v);
-
+	multfly_key newkey = multfly_init_impl(&key->k[0], 0, 0, v);
 	for (int i = 0; i < 8; i++) {
 		key->k[i] = v[i];
-	}
-
-	multfly_key newkey;
-	for (int i = 0; i < 8; i++) {
-		newkey.k[i] = v[i + 8];
 	}
 	return newkey;
 }
