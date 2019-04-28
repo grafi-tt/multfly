@@ -11,6 +11,9 @@ test/bigcrush: src/multfly.o test/bigcrush.o
 src/multfly.o: src/multfly.c include/multfly.h
 	$(CC) $(CFLAGS) -std=c99 -fPIC -I./include -c $< -o $@
 
+src/multfly_ssse3.o: src/multfly_ssse3.c include/multfly.h
+	$(CC) $(CFLAGS) -std=c99 -march=native -fPIC -I./include -c $< -o $@
+
 test/bigcrush.o: test/bigcrush.c include/multfly.h
 	$(CC) $(CFLAGS) -std=c99 -fPIC -I./include -c $< -o $@
 
