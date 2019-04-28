@@ -114,16 +114,16 @@ static void multfly_gen_impl(const multfly_key *key, uint64_t ctr, uint32_t resu
 	multfly_gen_qround(us, vs, 2);
 	multfly_gen_qround(us, vs, 3);
 
-	multfly_gen_swap(us, 0, 1);
-	multfly_gen_swap(us, 2, 3);
+	multfly_gen_swap(vs, 0, 1);
+	multfly_gen_swap(vs, 2, 3);
 
 	multfly_gen_qround(us, vs, 0);
 	multfly_gen_qround(us, vs, 1);
 	multfly_gen_qround(us, vs, 2);
 	multfly_gen_qround(us, vs, 3);
 
-	multfly_gen_swap(us, 0, 2);
-	multfly_gen_swap(us, 1, 3);
+	multfly_gen_swap(vs, 0, 2);
+	multfly_gen_swap(vs, 1, 3);
 
 	multfly_gen_qround(us, vs, 0);
 	multfly_gen_qround(us, vs, 1);
