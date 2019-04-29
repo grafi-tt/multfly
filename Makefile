@@ -1,5 +1,4 @@
 CC ?= gcc
-CXX ?= g++
 CFLAGS ?= -O2 -march=native -fno-stack-protector -Wall -Wextra -Wpedantic -Werror
 
 .PHONY: all
