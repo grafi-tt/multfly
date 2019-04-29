@@ -3,7 +3,7 @@
 
 #include <multfly.h>
 
-static const uint32_t seed[4] = {0};
+static const uint32_t seed[8] = {0};
 static const uint64_t global_seed = 0;
 static const uint64_t global_ctr = 0;
 
