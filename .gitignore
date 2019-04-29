@@ -1,4 +1,5 @@
 *.o
 *.so
 test/test_ref
+test/test_ssse3
 test/bigcrush

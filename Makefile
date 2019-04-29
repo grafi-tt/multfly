@@ -17,9 +17,12 @@ src/multfly_ssse3.o: src/multfly_ssse3.c include/multfly.h
 	$(CC) $(CFLAGS) -std=c99 -fPIC -I./include -c $< -o $@
 
 .PHONY: test
-test: test/test_ref test/bigcrush
+test: test/test_ref test/test_ssse3 test/bigcrush
 
 test/test_ref: src/multfly_ref.o test/test.o
+	$(CC) $^ -o $@
+
+test/test_ssse3: src/multfly_ssse3.o test/test.o
 	$(CC) $^ -o $@
 
 test/bigcrush: src/multfly_ref.o test/bigcrush.o
@@ -39,5 +42,6 @@ clean:
 		src/multfly_ref.o \
 		src/multfly_ssse3.o \
 		test/test_ref \
+		test/test_ssse3 \
 		test/bigcrush \
 		test/bigcrush.o
