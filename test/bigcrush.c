@@ -1,7 +1,7 @@
 #include <unif01.h>
 #include <bbattery.h>
 
-#include <multfly.h>
+#include <multfly_ref.h>
 
 static multfly_key key = {0};
 static const uint64_t global_seed = 0;

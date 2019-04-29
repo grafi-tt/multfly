@@ -1,5 +1,3 @@
-*.o
-*.so
 test/test_ref
 test/test_sse41
 test/bigcrush

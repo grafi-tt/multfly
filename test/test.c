@@ -1,7 +1,11 @@
 #include <inttypes.h>
 #include <stdio.h>
 
-#include <multfly.h>
+#ifdef SSE41
+#include <multfly_sse41.h>
+#else
+#include <multfly_ref.h>
+#endif
 
 int check_number(char *title, uint32_t result, uint32_t expected) {
 	int ng;
