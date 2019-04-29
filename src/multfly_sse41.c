@@ -1,4 +1,6 @@
+#include <emmintrin.h>
 #include <smmintrin.h>
+#include <tmmintrin.h>
 
 #include <multfly.h>
 
