@@ -44,4 +44,5 @@ clean:
 		test/test_ref \
 		test/test_sse41 \
 		test/bigcrush \
+		test/test.o \
 		test/bigcrush.o
