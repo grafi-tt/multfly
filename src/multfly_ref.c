@@ -50,15 +50,14 @@ static multfly_key multfly_derive_impl(const multfly_key *key, uint64_t global_s
 
 	multfly_chacha8_permute(v);
 
-	if (splitkey != 0) {
-		for (int i = 0; i < 8; i++) {
-			splitkey->k[i] = v[i];
-		}
-	}
-
 	multfly_key newkey;
 	for (int i = 0; i < 8; i++) {
-		newkey.k[i] = v[i + 8];
+		newkey.k[i] = v[i];
+	}
+	if (splitkey != 0) {
+		for (int i = 0; i < 8; i++) {
+			splitkey->k[i] = v[i + 8];
+		}
 	}
 	return newkey;
 }
@@ -103,10 +102,9 @@ static void multfly_gen_impl(const multfly_key *key, uint64_t ctr, uint32_t resu
 	uint32_t us[4];
 	uint32_t vs[4];
 
-	for (int i = 0; i < 4; i++) {
-		us[i] = key->k[i] ^ (uint32_t)ctr;
-		vs[i] = key->k[i + 4] ^ (uint32_t)(ctr >> 32);
-		++ctr;
+	for (uint32_t i = 0; i < 4; i++) {
+		us[i] = key->k[i] ^ ((uint32_t)ctr + i);
+		vs[i] = key->k[i + 4] ^ ((uint32_t)(ctr >> 32) + i);
 	}
 
 	multfly_gen_qround(us, vs, 0);

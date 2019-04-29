@@ -45,14 +45,13 @@ static multfly_key multfly_derive_impl(const multfly_key *key, uint64_t global_s
 
 	multfly_chacha8_permute(&a, &b, &c, &d);
 
-	if (splitkey != 0) {
-		_mm_storeu_si128((__m128i *)&splitkey->k[0], a);
-		_mm_storeu_si128((__m128i *)&splitkey->k[4], b);
-	}
-
 	multfly_key newkey;
-	_mm_storeu_si128((__m128i *)&newkey.k[0], c);
-	_mm_storeu_si128((__m128i *)&newkey.k[4], d);
+	_mm_storeu_si128((__m128i *)&newkey.k[0], a);
+	_mm_storeu_si128((__m128i *)&newkey.k[4], b);
+	if (splitkey != 0) {
+		_mm_storeu_si128((__m128i *)&splitkey->k[0], c);
+		_mm_storeu_si128((__m128i *)&splitkey->k[4], d);
+	}
 	return newkey;
 }
 
@@ -67,7 +66,7 @@ multfly_key multfly_split(multfly_key *key) {
 static void multfly_gen_round(__m128i *u, __m128i *v) {
 	__m128i mulu = _mm_set1_epi32(UINT32_C(2718281829));
 	__m128i mulv = _mm_set1_epi32(UINT32_C(3141592653));
-	__m128i incr = _mm_set_epi32(UINT32_C(0x9891A2B1), UINT32_C(0xCC48d158), UINT32_C(0x662468AC), UINT32_C(0x33123456));
+	__m128i incr = _mm_set_epi32(UINT32_C(0x9891A2B1), UINT32_C(0xCC48D158), UINT32_C(0x662468AC), UINT32_C(0x33123456));
 
 	__m128i rotl8_shufvec = _mm_set_epi8(
 			0x0E, 0x0D, 0x0C, 0x0F, 0x0A, 0x09, 0x08, 0x0B, 0x06, 0x05, 0x04, 0x07, 0x02, 0x01, 0x00, 0x03);
@@ -94,9 +93,9 @@ static void multfly_gen_impl(const multfly_key *key, uint64_t ctr, uint32_t resu
 	ctrv = _mm_add_epi32(ctrv, offset);
 
 	__m128i u = _mm_loadu_si128((const __m128i *)&key->k[0]);
-	__m128i v = _mm_loadu_si128((const __m128i *)&key->k[0] + 1);
+	__m128i v = _mm_loadu_si128((const __m128i *)&key->k[4]);
 	u = _mm_xor_si128(u, ctru);
-	u = _mm_xor_si128(u, ctrv);
+	v = _mm_xor_si128(v, ctrv);
 
 	multfly_gen_round(&u, &v);
 	v = _mm_shuffle_epi32(v, 0xB1);
