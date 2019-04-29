@@ -35,31 +35,31 @@ static void multfly_chacha8_permute(__m128i *a, __m128i *b, __m128i *c, __m128i 
 	}
 }
 
-static multfly_key multfly_init_impl(const uint32_t seed[8], uint64_t global_seed, uint64_t global_ctr, uint32_t residual[8]) {
+static multfly_key multfly_derive_impl(const multfly_key *key, uint64_t global_seed, uint64_t global_ctr, multfly_key *splitkey) {
 	__m128i a = _mm_set_epi32(UINT32_C(0x6B206574), UINT32_C(0x79622D32), UINT32_C(0x3320646E), UINT32_C(0x61707865));
-	__m128i b = _mm_loadu_si128((const __m128i *)seed);
-	__m128i c = _mm_loadu_si128((const __m128i *)seed + 1);
+	__m128i b = _mm_loadu_si128((const __m128i *)&key->k[0]);
+	__m128i c = _mm_loadu_si128((const __m128i *)&key->k[4]);
 	__m128i d = _mm_set_epi64x(global_seed, global_ctr);
 
 	multfly_chacha8_permute(&a, &b, &c, &d);
 
-	if (residual != NULL) {
-		_mm_storeu_si128((__m128i *)residual, a);
-		_mm_storeu_si128((__m128i *)residual + 1, b);
+	if (splitkey != 0) {
+		_mm_storeu_si128((__m128i *)&splitkey->k[0], a);
+		_mm_storeu_si128((__m128i *)&splitkey->k[4], b);
 	}
 
 	multfly_key newkey;
 	_mm_storeu_si128((__m128i *)&newkey.k[0], c);
-	_mm_storeu_si128((__m128i *)&newkey.k[0] + 1, d);
+	_mm_storeu_si128((__m128i *)&newkey.k[4], d);
 	return newkey;
 }
 
-multfly_key multfly_init(const uint32_t seed[8], uint64_t global_seed, uint64_t global_ctr) {
-	return multfly_init_impl(seed, global_seed, global_ctr, NULL);
+multfly_key multfly_derive(const multfly_key *key, uint64_t global_seed, uint64_t global_ctr) {
+	return multfly_derive_impl(key, global_seed, global_ctr, 0);
 }
 
 multfly_key multfly_split(multfly_key *key) {
-	return multfly_init_impl(&key->k[0], 0, 0, &key->k[0]);
+	return multfly_derive_impl(key, 0, 0, key);
 }
 
 static void multfly_gen_round(__m128i *u, __m128i *v) {

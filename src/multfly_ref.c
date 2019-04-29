@@ -28,21 +28,21 @@ static void multfly_chacha8_permute(uint32_t v[16]) {
 	}
 }
 
-static multfly_key multfly_init_impl(const uint32_t seed[8], uint64_t global_seed, uint64_t global_ctr, uint32_t residual[8]) {
+static multfly_key multfly_derive_impl(const multfly_key *key, uint64_t global_seed, uint64_t global_ctr, multfly_key *splitkey) {
 	uint32_t v[16];
 	// Use Chacha IV: "expand 32-byte k"
 	v[0]  = UINT32_C(0x61707865);
 	v[1]  = UINT32_C(0x3320646E);
 	v[2]  = UINT32_C(0x79622D32);
 	v[3]  = UINT32_C(0x6B206574);
-	v[4]  = seed[0];
-	v[5]  = seed[1];
-	v[6]  = seed[2];
-	v[7]  = seed[3];
-	v[8]  = seed[4];
-	v[9]  = seed[5];
-	v[10] = seed[6];
-	v[11] = seed[7];
+	v[4]  = key->k[0];
+	v[5]  = key->k[1];
+	v[6]  = key->k[2];
+	v[7]  = key->k[3];
+	v[8]  = key->k[4];
+	v[9]  = key->k[5];
+	v[10] = key->k[6];
+	v[11] = key->k[7];
 	v[12] = (uint32_t)global_ctr;
 	v[13] = (uint32_t)(global_ctr >> 32);
 	v[14] = (uint32_t)global_seed;
@@ -50,9 +50,9 @@ static multfly_key multfly_init_impl(const uint32_t seed[8], uint64_t global_see
 
 	multfly_chacha8_permute(v);
 
-	if (residual != 0) {
+	if (splitkey != 0) {
 		for (int i = 0; i < 8; i++) {
-			residual[i] = v[i];
+			splitkey->k[i] = v[i];
 		}
 	}
 
@@ -63,12 +63,12 @@ static multfly_key multfly_init_impl(const uint32_t seed[8], uint64_t global_see
 	return newkey;
 }
 
-multfly_key multfly_init(const uint32_t seed[8], uint64_t global_seed, uint64_t global_ctr) {
-	return multfly_init_impl(seed, global_seed, global_ctr, 0);
+multfly_key multfly_derive(const multfly_key *key, uint64_t global_seed, uint64_t global_ctr) {
+	return multfly_derive_impl(key, global_seed, global_ctr, 0);
 }
 
 multfly_key multfly_split(multfly_key *key) {
-	return multfly_init_impl(&key->k[0], 0, 0, &key->k[0]);
+	return multfly_derive_impl(key, 0, 0, key);
 }
 
 static void multfly_gen_qround(uint32_t us[4], uint32_t vs[4], uint32_t i) {
