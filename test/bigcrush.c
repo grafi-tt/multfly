@@ -18,7 +18,7 @@ uint32_t multfly() {
 	}
 
 	if (ctr % BUFLEN == 0) {
-		multfly_gen(&key, ctr, buf, BUFLEN);
+		multfly_gen32(&key, ctr, buf, BUFLEN);
 	}
 	uint32_t r = buf[ctr++ % BUFLEN];
 
