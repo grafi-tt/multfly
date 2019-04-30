@@ -7,16 +7,18 @@
 
 uint32_t multfly() {
 	static multfly_key key;
-	static uint64_t ctr = 0;
+	static uint64_t id = 0;
 	static uint32_t buf[4];
-	if (ctr == 0) {
+	static int pos = 0;
+	if (pos == 0) {
 		key = multfly_init(NULL, 0, 0);
+		multfly_gen32(&key, id++, 0, buf);
 	}
-
-	if (ctr % 4 == 0) {
-		multfly_gen32(&key, ctr, buf);
+	if (pos == 4) {
+		pos = 0;
+		multfly_gen32(&key, id++, 0, buf);
 	}
-	uint32_t r = buf[ctr++ % 4];
+	uint32_t r = buf[pos++];
 
 #ifdef BITREV
 	uint32_t t;
