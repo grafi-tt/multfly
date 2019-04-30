@@ -3,18 +3,14 @@
 
 #include <stdint.h>
 
+#include "multfly_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifndef MULTFLY_MULTFLY_KEY_STRUCT
-#define MULTFLY_MULTFLY_KEY_STRUCT
-typedef struct multfly_key_ {
-	uint32_t k[8];
-} multfly_key;
-#endif
-
-static inline multfly_key multfly_derive(const multfly_key *key, uint64_t global_seed, uint64_t global_ctr);
+static inline multfly_key multfly_init(const multfly_ident *ident, uint64_t global_seed, uint64_t global_ctr);
+static inline multfly_key multfly_split(multfly_key *key);
 static inline void multfly_gen32(const multfly_key *key, uint64_t ctr, uint32_t *r, uint64_t len);
 static inline void multfly_gen32x4(const multfly_key *key, uint64_t ctr, uint32_t *r0, uint32_t *r1, uint32_t *r2, uint32_t *r3, uint64_t len);
 static inline void multfly_gen64(const multfly_key *key, uint64_t ctr, uint64_t *r, uint64_t len);
@@ -28,44 +24,50 @@ static inline uint32_t multfly_rotl_(uint32_t k, int n) {
 	return (k << n) | (k >> (32 - n));
 }
 
-static inline void multfly_chacha_qround_(uint32_t v[16], int a, int b, int c, int d) {
-	v[a] += v[b];
-	v[d] = multfly_rotl_(v[d] ^ v[a], 16);
-	v[c] += v[d];
-	v[b] = multfly_rotl_(v[b] ^ v[c], 12);
-	v[a] += v[b];
-	v[d] = multfly_rotl_(v[d] ^ v[a], 8);
-	v[c] += v[d];
-	v[b] = multfly_rotl_(v[b] ^ v[c], 7);
+static inline void multfly_chacha_qround_(uint32_t *a, uint32_t *b, uint32_t *c, uint32_t *d) {
+	*a += *b;
+	*d = multfly_rotl_(*d ^ *a, 16);
+	*c += *d;
+	*b = multfly_rotl_(*b ^ *c, 12);
+	*a += *b;
+	*d = multfly_rotl_(*d ^ *a, 8);
+	*c += *d;
+	*b = multfly_rotl_(*b ^ *c, 7);
 }
 
 static inline void multfly_chacha8_permute_(uint32_t v[16]) {
-	for (int i = 0; i < 8; i += 2) {
-		multfly_chacha_qround_(v, 0, 4,  8, 12);
-		multfly_chacha_qround_(v, 1, 5,  9, 13);
-		multfly_chacha_qround_(v, 2, 6, 10, 14);
-		multfly_chacha_qround_(v, 3, 7, 11, 15);
-		multfly_chacha_qround_(v, 0, 5, 10, 15);
-		multfly_chacha_qround_(v, 1, 6, 11, 12);
-		multfly_chacha_qround_(v, 2, 7,  8, 13);
-		multfly_chacha_qround_(v, 3, 4,  9, 14);
-	}
-}
-
-static inline multfly_key multfly_derive(const multfly_key *key, uint64_t global_seed, uint64_t global_ctr) {
-	uint32_t v[16];
 	v[0]  = multfly_rotl_(UINT32_C(0x33123456), 0);
 	v[1]  = multfly_rotl_(UINT32_C(0x33123456), 1);
 	v[2]  = multfly_rotl_(UINT32_C(0x33123456), 2);
 	v[3]  = multfly_rotl_(UINT32_C(0x33123456), 3);
-	v[4]  = key->k[0];
-	v[5]  = key->k[1];
-	v[6]  = key->k[2];
-	v[7]  = key->k[3];
-	v[8]  = key->k[4];
-	v[9]  = key->k[5];
-	v[10] = key->k[6];
-	v[11] = key->k[7];
+
+	for (int i = 0; i < 8; i += 2) {
+		multfly_chacha_qround_(&v[0], &v[4], &v[ 8], &v[12]);
+		multfly_chacha_qround_(&v[1], &v[5], &v[ 9], &v[13]);
+		multfly_chacha_qround_(&v[2], &v[6], &v[10], &v[14]);
+		multfly_chacha_qround_(&v[3], &v[7], &v[11], &v[15]);
+		multfly_chacha_qround_(&v[0], &v[5], &v[10], &v[15]);
+		multfly_chacha_qround_(&v[1], &v[6], &v[11], &v[12]);
+		multfly_chacha_qround_(&v[2], &v[7], &v[ 8], &v[13]);
+		multfly_chacha_qround_(&v[3], &v[4], &v[ 9], &v[14]);
+	}
+}
+
+static inline multfly_key multfly_init(const multfly_ident *ident, uint64_t global_seed, uint64_t global_ctr) {
+	uint32_t v[16];
+	for (int i = 4; i < 12; i++) {
+		v[i] = 0;
+	}
+	if (ident) {
+		v[4]  = ident->v[0];
+		v[5]  = ident->v[1];
+		v[6]  = ident->v[2];
+		v[7]  = ident->v[3];
+		v[8]  = ident->v[4];
+		v[9]  = ident->v[5];
+		v[10] = ident->v[6];
+		v[11] = ident->v[7];
+	}
 	v[12] = (uint32_t)global_ctr;
 	v[13] = (uint32_t)(global_ctr >> 32);
 	v[14] = (uint32_t)global_seed;
@@ -75,12 +77,39 @@ static inline multfly_key multfly_derive(const multfly_key *key, uint64_t global
 
 	multfly_key newkey;
 	for (int i = 0; i < 8; i++) {
-		newkey.k[i] = v[i] ^ v[i + 8];
+		newkey.v_[i] = v[i] ^ v[i + 8];
 	}
 	return newkey;
 }
 
-static inline void multfly_gen_qround_(uint32_t us[4], uint32_t vs[4], uint32_t lane) {
+static inline multfly_key multfly_split(multfly_key *key) {
+	uint32_t v[16];
+	v[4]  = key->v_[0];
+	v[5]  = key->v_[1];
+	v[6]  = key->v_[2];
+	v[7]  = key->v_[3];
+	v[8]  = key->v_[4];
+	v[9]  = key->v_[5];
+	v[10] = key->v_[6];
+	v[11] = key->v_[7];
+	for (int i = 12; i < 16; i++) {
+		v[i] = 0;
+	}
+
+	multfly_chacha8_permute_(v);
+
+	for (int i = 0; i < 8; i++) {
+		key->v_[i] = v[i];
+	}
+
+	multfly_key newkey;
+	for (int i = 0; i < 8; i++) {
+		newkey.v_[i] = v[i + 8];
+	}
+	return newkey;
+}
+
+static inline void multfly_gen_qround_(uint32_t us[4], uint32_t vs[4], int lane) {
 	uint32_t mulu = UINT32_C(2718281829);
 	uint32_t mulv = UINT32_C(3141592653);
 	uint32_t incr = UINT32_C(0x33123456);
@@ -112,9 +141,9 @@ static inline void multfly_gen_impl_(const multfly_key *key, uint64_t ctr, uint3
 	uint32_t us[4];
 	uint32_t vs[4];
 
-	for (uint32_t lane = 0; lane < 4; lane++) {
-		us[lane] = key->k[lane] ^ ((uint32_t)ctr + lane);
-		vs[lane] = key->k[lane + 4] ^ ((uint32_t)(ctr >> 32) + lane);
+	for (int lane = 0; lane < 4; lane++) {
+		us[lane] = key->v_[lane] ^ ((uint32_t)ctr + lane);
+		vs[lane] = key->v_[lane + 4] ^ ((uint32_t)(ctr >> 32) + lane);
 	}
 
 	multfly_gen_qround_(us, vs, 0);

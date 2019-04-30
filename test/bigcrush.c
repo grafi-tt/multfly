@@ -1,20 +1,18 @@
+#include <stddef.h>
+
 #include <unif01.h>
 #include <bbattery.h>
 
 #include <multfly_ref.h>
 
-static multfly_key key = {0};
-static const uint64_t global_seed = 0;
-static const uint64_t global_ctr = 0;
-
 #define BUFLEN 32
 
 uint32_t multfly() {
+	static multfly_key key;
 	static uint64_t ctr = 0;
 	static uint32_t buf[BUFLEN];
-
 	if (ctr == 0) {
-		key = multfly_derive(&key, global_seed, global_ctr);
+		key = multfly_init(NULL, 0, 0);
 	}
 
 	if (ctr % BUFLEN == 0) {

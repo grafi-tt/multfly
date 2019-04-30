@@ -7,18 +7,14 @@
 #include <smmintrin.h>
 #include <tmmintrin.h>
 
+#include "multfly_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifndef MULTFLY_MULTFLY_KEY_STRUCT
-#define MULTFLY_MULTFLY_KEY_STRUCT
-typedef struct multfly_key_ {
-	uint32_t k[8];
-} multfly_key;
-#endif
-
-static inline multfly_key multfly_derive(const multfly_key *key, uint64_t global_seed, uint64_t global_ctr);
+static inline multfly_key multfly_init(const multfly_ident *ident, uint64_t global_seed, uint64_t global_ctr);
+static inline multfly_key multfly_split(multfly_key *key);
 static inline void multfly_gen32(const multfly_key *key, uint64_t ctr, uint32_t *r, uint64_t len);
 static inline void multfly_gen32x4(const multfly_key *key, uint64_t ctr, uint32_t *r0, uint32_t *r1, uint32_t *r2, uint32_t *r3, uint64_t len);
 static inline void multfly_gen64(const multfly_key *key, uint64_t ctr, uint64_t *r, uint64_t len);
@@ -49,6 +45,8 @@ static inline void multfly_chacha_round_(__m128i *a, __m128i *b, __m128i *c, __m
 }
 
 static inline void multfly_chacha8_permute_(__m128i *a, __m128i *b, __m128i *c, __m128i *d) {
+	*a = _mm_set_epi32(UINT32_C(0x9891A2B1), UINT32_C(0xCC48D158), UINT32_C(0x662468AC), UINT32_C(0x33123456));
+
 	for (int i = 0; i < 8; i += 2) {
 		multfly_chacha_round_(a, b, c, d);
 		*b = _mm_shuffle_epi32(*b, 0x39);
@@ -61,17 +59,38 @@ static inline void multfly_chacha8_permute_(__m128i *a, __m128i *b, __m128i *c, 
 	}
 }
 
-static inline multfly_key multfly_derive(const multfly_key *key, uint64_t global_seed, uint64_t global_ctr) {
-	__m128i a = _mm_set_epi32(UINT32_C(0x9891A2B1), UINT32_C(0xCC48D158), UINT32_C(0x662468AC), UINT32_C(0x33123456));
-	__m128i b = _mm_loadu_si128((const __m128i *)&key->k[0]);
-	__m128i c = _mm_loadu_si128((const __m128i *)&key->k[4]);
+static inline multfly_key multfly_init(const multfly_ident *ident, uint64_t global_seed, uint64_t global_ctr) {
+	__m128i a;
+	__m128i b = _mm_setzero_si128();
+	__m128i c = _mm_setzero_si128();
+	if (ident) {
+		b = _mm_loadu_si128((const __m128i *)&ident->v[0]);
+		c = _mm_loadu_si128((const __m128i *)&ident->v[4]);
+	}
 	__m128i d = _mm_set_epi64x(global_seed, global_ctr);
 
 	multfly_chacha8_permute_(&a, &b, &c, &d);
 
 	multfly_key newkey;
-	_mm_storeu_si128((__m128i *)&newkey.k[0], _mm_xor_si128(a, c));
-	_mm_storeu_si128((__m128i *)&newkey.k[4], _mm_xor_si128(b, d));
+	_mm_storeu_si128((__m128i *)&newkey.v_[0], _mm_xor_si128(a, c));
+	_mm_storeu_si128((__m128i *)&newkey.v_[4], _mm_xor_si128(b, d));
+	return newkey;
+}
+
+static inline multfly_key multfly_split(multfly_key *key) {
+	__m128i a;
+	__m128i b = _mm_loadu_si128((const __m128i *)&key->v_[0]);
+	__m128i c = _mm_loadu_si128((const __m128i *)&key->v_[4]);
+	__m128i d = _mm_setzero_si128();
+
+	multfly_chacha8_permute_(&a, &b, &c, &d);
+
+	_mm_storeu_si128((__m128i *)&key->v_[0], a);
+	_mm_storeu_si128((__m128i *)&key->v_[4], b);
+
+	multfly_key newkey;
+	_mm_storeu_si128((__m128i *)&newkey.v_[0], c);
+	_mm_storeu_si128((__m128i *)&newkey.v_[4], d);
 	return newkey;
 }
 
@@ -104,8 +123,8 @@ static inline __m128i multfly_gen_impl_(const multfly_key *key, uint64_t ctr) {
 	ctru = _mm_add_epi32(ctru, offset);
 	ctrv = _mm_add_epi32(ctrv, offset);
 
-	__m128i u = _mm_loadu_si128((const __m128i *)&key->k[0]);
-	__m128i v = _mm_loadu_si128((const __m128i *)&key->k[4]);
+	__m128i u = _mm_loadu_si128((const __m128i *)&key->v_[0]);
+	__m128i v = _mm_loadu_si128((const __m128i *)&key->v_[4]);
 	u = _mm_xor_si128(u, ctru);
 	v = _mm_xor_si128(v, ctrv);
 
