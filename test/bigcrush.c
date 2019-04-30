@@ -5,20 +5,18 @@
 
 #include <multfly_ref.h>
 
-#define BUFLEN 32
-
 uint32_t multfly() {
 	static multfly_key key;
 	static uint64_t ctr = 0;
-	static uint32_t buf[BUFLEN];
+	static uint32_t buf[4];
 	if (ctr == 0) {
 		key = multfly_init(NULL, 0, 0);
 	}
 
-	if (ctr % BUFLEN == 0) {
-		multfly_gen32(&key, ctr, buf, BUFLEN);
+	if (ctr % 4 == 0) {
+		multfly_gen32(&key, ctr, buf);
 	}
-	uint32_t r = buf[ctr++ % BUFLEN];
+	uint32_t r = buf[ctr++ % 4];
 
 #ifdef BITREV
 	uint32_t t;
