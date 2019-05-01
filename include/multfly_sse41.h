@@ -113,7 +113,7 @@ static inline void multfly_gen_round_(__m128i *u, __m128i *v) {
 	*v = _mm_add_epi32(*v, *u);
 }
 
-static inline __m128i multfly_gen_impl_(const multfly_key *key, uint64_t id, uint32_t ctr) {
+static inline __m128i multfly_gen_impl_(const multfly_key *key, uint64_t id, uint32_t ctr, uint32_t offset) {
 	__m128i id_x = _mm_cvtsi64_si128(id);
 	__m128i id_hi = _mm_shuffle_epi32(id_x, 0x55);
 	__m128i id_lo = _mm_shuffle_epi32(id_x, 0x00);
@@ -123,9 +123,8 @@ static inline __m128i multfly_gen_impl_(const multfly_key *key, uint64_t id, uin
 	__m128i ctr_lo = _mm_srli_epi32(ctr_hi, 16);
 	ctr_hi = _mm_shuffle_epi32(ctr_hi, 0x55);
 	ctr_lo = _mm_shuffle_epi32(ctr_lo, 0x00);
-	__m128i mns1 = _mm_set1_epi32(-1);
-	ctr_hi = _mm_sub_epi32(ctr_hi, mns1);
-	ctr_lo = _mm_sub_epi32(ctr_lo, mns1);
+	ctr_hi = _mm_add_epi32(ctr_hi, _mm_set1_epi32(offset));
+	ctr_lo = _mm_add_epi32(ctr_lo, _mm_set1_epi32(offset));
 
 	__m128i lane_pow = _mm_set_epi32(8, 4, 2, 1);
 	__m128i nonce_lo = _mm_add_epi32(id_lo, _mm_mullo_epi32(ctr_lo, lane_pow));
@@ -146,13 +145,13 @@ static inline __m128i multfly_gen_impl_(const multfly_key *key, uint64_t id, uin
 }
 
 static inline void multfly_gen32(const multfly_key *key, uint64_t id, uint32_t ctr, uint32_t r[4]) {
-	__m128i v = multfly_gen_impl_(key, id, ctr);
+	__m128i v = multfly_gen_impl_(key, id, ctr, 1);
 	_mm_storeu_si128((__m128i *)r, v);
 }
 
 static inline void multfly_gen64(const multfly_key *key, uint64_t id, uint32_t ctr, uint64_t r[4]) {
-	__m128i lo = multfly_gen_impl_(key, id, ctr + 0);
-	__m128i hi = multfly_gen_impl_(key, id, ctr + 1);
+	__m128i lo = multfly_gen_impl_(key, id, ctr, 1);
+	__m128i hi = multfly_gen_impl_(key, id, ctr, UINT32_C(0x10001));
 	__m128i fst = _mm_unpacklo_epi32(lo, hi);
 	__m128i snd = _mm_unpackhi_epi32(lo, hi);
 	_mm_storeu_si128((__m128i *)r, fst);
@@ -160,7 +159,7 @@ static inline void multfly_gen64(const multfly_key *key, uint64_t id, uint32_t c
 }
 
 static inline void multfly_genf32(const multfly_key *key, uint64_t id, uint32_t ctr, float r[4]) {
-	__m128i v = multfly_gen_impl_(key, id, ctr);
+	__m128i v = multfly_gen_impl_(key, id, ctr, 1);
 	v = _mm_srli_epi32(v, 8);
 	__m128 f = _mm_cvtepi32_ps(v);
 	f = _mm_mul_ps(f, _mm_set1_ps((float)(1.0 / (UINT32_C(1) << 24))));
@@ -168,8 +167,8 @@ static inline void multfly_genf32(const multfly_key *key, uint64_t id, uint32_t 
 }
 
 static inline void multfly_genf64(const multfly_key *key, uint64_t id, uint32_t ctr, double r[4]) {
-	__m128i lo = multfly_gen_impl_(key, id, ctr + 0);
-	__m128i hi = multfly_gen_impl_(key, id, ctr + 1);
+	__m128i lo = multfly_gen_impl_(key, id, ctr, 1);
+	__m128i hi = multfly_gen_impl_(key, id, ctr, UINT32_C(0x10001));
 	__m128i fst = _mm_unpacklo_epi32(lo, hi);
 	__m128i snd = _mm_unpackhi_epi32(lo, hi);
 	fst = _mm_srli_epi64(fst, 11);
