@@ -1,8 +1,6 @@
 #ifndef MULTFLY_MULTFLY_REF_H
 #define MULTFLY_MULTFLY_REF_H
 
-#include <stdint.h>
-
 #include "multfly_types.h"
 
 #ifdef __cplusplus
@@ -191,10 +189,10 @@ static inline void multfly_genf64(const multfly_key *key, uint64_t idx, uint32_t
 	uint32_t hi[4];
 	multfly_gen_impl_(key, idx, ctr, 0, lo);
 	multfly_gen_impl_(key, idx, ctr, 1, hi);
-	out[0] = ((lo[0] >> 11) | ((uint64_t)hi[0] << 21)) * (1.0 / (UINT64_C(1) << 53));
-	out[1] = ((lo[1] >> 11) | ((uint64_t)hi[1] << 21)) * (1.0 / (UINT64_C(1) << 53));
-	out[2] = ((lo[2] >> 11) | ((uint64_t)hi[2] << 21)) * (1.0 / (UINT64_C(1) << 53));
-	out[3] = ((lo[3] >> 11) | ((uint64_t)hi[3] << 21)) * (1.0 / (UINT64_C(1) << 53));
+	out[0] = ((lo[0] | ((uint64_t)hi[0] << 32)) >> 11) * (1.0 / (UINT64_C(1) << 53));
+	out[1] = ((lo[1] | ((uint64_t)hi[1] << 32)) >> 11) * (1.0 / (UINT64_C(1) << 53));
+	out[2] = ((lo[2] | ((uint64_t)hi[2] << 32)) >> 11) * (1.0 / (UINT64_C(1) << 53));
+	out[3] = ((lo[3] | ((uint64_t)hi[3] << 32)) >> 11) * (1.0 / (UINT64_C(1) << 53));
 }
 
 #ifdef __cplusplus

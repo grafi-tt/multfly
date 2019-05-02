@@ -1,6 +1,14 @@
 #ifndef MULTFLY_MULTFLY_TYPES_H
 #define MULTFLY_MULTFLY_TYPES_H
 
+#ifdef __CUDA_ARCH__
+// stdint.h don't work with NVRTC
+typedef unsigned int uint32_t;
+typedef unsigned long long uint64_t;
+#else
+#include <stdint.h>
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
