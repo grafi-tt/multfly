@@ -2,3 +2,5 @@ test/test_ref
 test/test_sse41
 test/bigcrush
 test/bigcrush_bitrev
+test/bigcrush_uint64
+test/bigcrush_uint64_bitrev
