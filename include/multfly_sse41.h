@@ -41,7 +41,7 @@ static inline void multfly_chacha_round_(__m128i *a, __m128i *b, __m128i *c, __m
 }
 
 static inline void multfly_chacha8_permute_(__m128i *a, __m128i *b, __m128i *c, __m128i *d) {
-	*a = _mm_set_epi32(UINT32_C(0x9891A2B1), UINT32_C(0xCC48D158), UINT32_C(0x662468AC), UINT32_C(0x33123456));
+	*a = _mm_set_epi32(UINT32_C(2345678910), UINT32_C(1234567891), UINT32_C(3141592653), UINT32_C(2718281829));
 
 	for (int i = 0; i < 8; i += 2) {
 		multfly_chacha_round_(a, b, c, d);
@@ -105,7 +105,7 @@ static inline void multfly_gen_round_(__m128i *a, __m128i *b, __m128i *c) {
 	*c = _mm_mullo_epi32(*c, _mm_set1_epi32(UINT32_C(3141592653)));
 	*b = _mm_add_epi32(*b, *c);
 	*b = _mm_shuffle_epi8(*b, rotl16_shufvec);
-	*a = _mm_add_epi32(*a, *b);
+	*a = _mm_xor_si128(*a, *b);
 }
 
 static inline __m128i multfly_gen_impl_(const multfly_key *key, uint64_t idx, uint64_t ctr_funct) {

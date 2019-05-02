@@ -37,10 +37,10 @@ static inline void multfly_chacha_qround_(uint32_t *a, uint32_t *b, uint32_t *c,
 }
 
 static inline void multfly_chacha8_permute_(uint32_t v[16]) {
-	v[0]  = multfly_rotl_(UINT32_C(0x33123456), 0);
-	v[1]  = multfly_rotl_(UINT32_C(0x33123456), 1);
-	v[2]  = multfly_rotl_(UINT32_C(0x33123456), 2);
-	v[3]  = multfly_rotl_(UINT32_C(0x33123456), 3);
+	v[0]  = UINT32_C(2718281829);
+	v[1]  = UINT32_C(3141592653);
+	v[2]  = UINT32_C(1234567891);
+	v[3]  = UINT32_C(2345678910);
 
 	for (int i = 0; i < 8; i += 2) {
 		multfly_chacha_qround_(&v[0], &v[4], &v[ 8], &v[12]);
@@ -121,7 +121,7 @@ static inline void multfly_gen_qround_(uint32_t *a, uint32_t *b, uint32_t *c) {
 	*c *= UINT32_C(3141592653);
 	*b += *c;
 	*b = multfly_rotl_(*b, 16);
-	*a += *b;
+	*a ^= *b;
 }
 
 static inline void multfly_gen_impl_(const multfly_key *key, uint64_t idx, uint32_t ctr, uint32_t funct, uint32_t out[4]) {

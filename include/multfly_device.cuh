@@ -39,7 +39,8 @@ __device__ static inline void multfly_device_chacha_round_(uint32_t *a, uint32_t
 
 __device__ static inline void multfly_device_chacha8_permute_(uint32_t *a, uint32_t *b, uint32_t *c, uint32_t *d) {
 	int lane = threadIdx.x & 3;
-	*a = multfly_device_rotl_(0x33123456u, lane);
+	static const uint32_t iv[4] = {2718281829u, 3141592653u, 1234567891u, 2345678910u};
+	*a = iv[lane];
 
 	for (int i = 0; i < 8; i += 2) {
 		multfly_device_chacha_round_(a, b, c, d);
@@ -102,7 +103,7 @@ __device__ static inline void multfly_device_gen_round_(uint32_t *a, uint32_t *b
 	*c *= 3141592653u;
 	*b += *c;
 	*b = multfly_device_rotl_(*b, 16);
-	*a += *b;
+	*a ^= *b;
 }
 
 __device__ static inline uint32_t multfly_device_gen_impl_(const multfly_key *key, uint64_t idx, uint64_t ctr_funct) {
