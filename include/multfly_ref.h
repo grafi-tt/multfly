@@ -14,6 +14,9 @@ static inline void multfly_gen64(const multfly_key *key, uint64_t idx, uint32_t 
 static inline void multfly_genf32(const multfly_key *key, uint64_t idx, uint32_t ctr, float out[4]);
 static inline void multfly_genf64(const multfly_key *key, uint64_t idx, uint32_t ctr, double out[4]);
 
+#define multfly_init_by_literal(literal, global_seed, global_ctr) \
+	multfly_init(&MULTFLY_IDENT_LITERAL(literal), global_seed, global_ctr)
+
 //
 // impl
 //

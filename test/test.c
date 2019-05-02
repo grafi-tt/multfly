@@ -34,68 +34,36 @@ int check_number64(char *title, uint64_t result, uint64_t expected) {
 int test_init() {
 	int ng = 0;
 
-	multfly_key key0 = multfly_init(NULL, 0, 0);
-	ng += check_number32("test_init 0, 0, 0 [0]", key0.v_[0], UINT32_C(0x5A7F760C));
-	ng += check_number32("test_init 0, 0, 0 [1]", key0.v_[1], UINT32_C(0xE3ABAB0B));
-	ng += check_number32("test_init 0, 0, 0 [2]", key0.v_[2], UINT32_C(0xECBCFCC9));
-	ng += check_number32("test_init 0, 0, 0 [3]", key0.v_[3], UINT32_C(0x7CD8982B));
-	ng += check_number32("test_init 0, 0, 0 [4]", key0.v_[4], UINT32_C(0xE428B5C8));
-	ng += check_number32("test_init 0, 0, 0 [5]", key0.v_[5], UINT32_C(0xA1C1A56E));
-	ng += check_number32("test_init 0, 0, 0 [6]", key0.v_[6], UINT32_C(0x0A66CADF));
-	ng += check_number32("test_init 0, 0, 0 [7]", key0.v_[7], UINT32_C(0x16926033));
-
-	multfly_key key0s42 = multfly_init(NULL, 42, 0);
-	ng += check_number32("test_init 0, 42, 0 [0]", key0s42.v_[0], UINT32_C(0x837DEF60));
-	ng += check_number32("test_init 0, 42, 0 [1]", key0s42.v_[1], UINT32_C(0x91EB7E46));
-	ng += check_number32("test_init 0, 42, 0 [2]", key0s42.v_[2], UINT32_C(0x7DFE6454));
-	ng += check_number32("test_init 0, 42, 0 [3]", key0s42.v_[3], UINT32_C(0xC8521F87));
-	ng += check_number32("test_init 0, 42, 0 [4]", key0s42.v_[4], UINT32_C(0x4406CFDC));
-	ng += check_number32("test_init 0, 42, 0 [5]", key0s42.v_[5], UINT32_C(0x8BD6B0DA));
-	ng += check_number32("test_init 0, 42, 0 [6]", key0s42.v_[6], UINT32_C(0x82CB0B0C));
-	ng += check_number32("test_init 0, 42, 0 [7]", key0s42.v_[7], UINT32_C(0xC017D37D));
-
-	multfly_key key0c42 = multfly_init(NULL, 0, 42);
-	ng += check_number32("test_init 0, 0, 42 [0]", key0c42.v_[0], UINT32_C(0x1D1D3930));
-	ng += check_number32("test_init 0, 0, 42 [1]", key0c42.v_[1], UINT32_C(0x0F50F5F7));
-	ng += check_number32("test_init 0, 0, 42 [2]", key0c42.v_[2], UINT32_C(0x79974889));
-	ng += check_number32("test_init 0, 0, 42 [3]", key0c42.v_[3], UINT32_C(0x7C2BB2D3));
-	ng += check_number32("test_init 0, 0, 42 [4]", key0c42.v_[4], UINT32_C(0xD3B290C1));
-	ng += check_number32("test_init 0, 0, 42 [5]", key0c42.v_[5], UINT32_C(0x5D91717E));
-	ng += check_number32("test_init 0, 0, 42 [6]", key0c42.v_[6], UINT32_C(0xCABC0AF1));
-	ng += check_number32("test_init 0, 0, 42 [7]", key0c42.v_[7], UINT32_C(0xD1EB06C3));
+	multfly_key keyn = multfly_init(NULL, 0, 0);
+	ng += check_number32("test_init NULL, 0, 0 [0]", keyn.v_[0], UINT32_C(0x5A7F760C));
+	ng += check_number32("test_init NULL, 0, 0 [1]", keyn.v_[1], UINT32_C(0xE3ABAB0B));
+	ng += check_number32("test_init NULL, 0, 0 [2]", keyn.v_[2], UINT32_C(0xECBCFCC9));
+	ng += check_number32("test_init NULL, 0, 0 [3]", keyn.v_[3], UINT32_C(0x7CD8982B));
+	ng += check_number32("test_init NULL, 0, 0 [4]", keyn.v_[4], UINT32_C(0xE428B5C8));
+	ng += check_number32("test_init NULL, 0, 0 [5]", keyn.v_[5], UINT32_C(0xA1C1A56E));
+	ng += check_number32("test_init NULL, 0, 0 [6]", keyn.v_[6], UINT32_C(0x0A66CADF));
+	ng += check_number32("test_init NULL, 0, 0 [7]", keyn.v_[7], UINT32_C(0x16926033));
 
 	multfly_ident ident0 = {0};
-	multfly_key keyz = multfly_init(&ident0, 0, 0);
-	ng += check_number32("test_init {0}, 0, 0 [0]", keyz.v_[0], key0.v_[0]);
-	ng += check_number32("test_init {0}, 0, 0 [0]", keyz.v_[1], key0.v_[1]);
-	ng += check_number32("test_init {0}, 0, 0 [0]", keyz.v_[2], key0.v_[2]);
-	ng += check_number32("test_init {0}, 0, 0 [0]", keyz.v_[3], key0.v_[3]);
-	ng += check_number32("test_init {0}, 0, 0 [0]", keyz.v_[4], key0.v_[4]);
-	ng += check_number32("test_init {0}, 0, 0 [0]", keyz.v_[5], key0.v_[5]);
-	ng += check_number32("test_init {0}, 0, 0 [0]", keyz.v_[6], key0.v_[6]);
-	ng += check_number32("test_init {0}, 0, 0 [0]", keyz.v_[7], key0.v_[7]);
+	multfly_key key0 = multfly_init(&ident0, 0, 0);
+	ng += check_number32("test_init {0}, 0, 0 [0]", key0.v_[0], keyn.v_[0]);
+	ng += check_number32("test_init {0}, 0, 0 [1]", key0.v_[1], keyn.v_[1]);
+	ng += check_number32("test_init {0}, 0, 0 [2]", key0.v_[2], keyn.v_[2]);
+	ng += check_number32("test_init {0}, 0, 0 [3]", key0.v_[3], keyn.v_[3]);
+	ng += check_number32("test_init {0}, 0, 0 [4]", key0.v_[4], keyn.v_[4]);
+	ng += check_number32("test_init {0}, 0, 0 [5]", key0.v_[5], keyn.v_[5]);
+	ng += check_number32("test_init {0}, 0, 0 [6]", key0.v_[6], keyn.v_[6]);
+	ng += check_number32("test_init {0}, 0, 0 [7]", key0.v_[7], keyn.v_[7]);
 
-	multfly_ident ident42z = {{42, 0, 0, 0, 0, 0, 0, 0}};
-	multfly_key key42z = multfly_init(&ident42z, 0, 0);
-	ng += check_number32("test_init {42, 0...}, 0, 0 [0]", key42z.v_[0], UINT32_C(0x96A14253));
-	ng += check_number32("test_init {42, 0...}, 0, 0 [1]", key42z.v_[1], UINT32_C(0x57B8E697));
-	ng += check_number32("test_init {42, 0...}, 0, 0 [2]", key42z.v_[2], UINT32_C(0xA27F6D34));
-	ng += check_number32("test_init {42, 0...}, 0, 0 [3]", key42z.v_[3], UINT32_C(0x0809D9A3));
-	ng += check_number32("test_init {42, 0...}, 0, 0 [4]", key42z.v_[4], UINT32_C(0xAD9DB6A7));
-	ng += check_number32("test_init {42, 0...}, 0, 0 [5]", key42z.v_[5], UINT32_C(0x4ED9E9E6));
-	ng += check_number32("test_init {42, 0...}, 0, 0 [6]", key42z.v_[6], UINT32_C(0x38B92312));
-	ng += check_number32("test_init {42, 0...}, 0, 0 [7]", key42z.v_[7], UINT32_C(0x724588B5));
-
-	multfly_ident identz42 = {{0, 0, 0, 0, 0, 0, 0, 42}};
-	multfly_key keyz42 = multfly_init(&identz42, 0, 0);
-	ng += check_number32("test_init {0..., 42}, 0, 0 [0]", keyz42.v_[0], UINT32_C(0x9419BF95));
-	ng += check_number32("test_init {0..., 42}, 0, 0 [1]", keyz42.v_[1], UINT32_C(0x8CE202D4));
-	ng += check_number32("test_init {0..., 42}, 0, 0 [2]", keyz42.v_[2], UINT32_C(0xF2C911B4));
-	ng += check_number32("test_init {0..., 42}, 0, 0 [3]", keyz42.v_[3], UINT32_C(0x93A3BB37));
-	ng += check_number32("test_init {0..., 42}, 0, 0 [4]", keyz42.v_[4], UINT32_C(0x88A5FE1B));
-	ng += check_number32("test_init {0..., 42}, 0, 0 [5]", keyz42.v_[5], UINT32_C(0xC8181A07));
-	ng += check_number32("test_init {0..., 42}, 0, 0 [6]", keyz42.v_[6], UINT32_C(0x9824A0C8));
-	ng += check_number32("test_init {0..., 42}, 0, 0 [7]", keyz42.v_[7], UINT32_C(0x6BAD7B83));
+	multfly_key key = multfly_init_by_literal("abcdefghijklmnopqrstuvwxyz123456", 78, 90);
+	ng += check_number32("test_init abcdefghijklmnopqrstuvwxyz123456, 78, 90 [0]", key.v_[0], UINT32_C(0x1FCE68FA));
+	ng += check_number32("test_init abcdefghijklmnopqrstuvwxyz123456, 78, 90 [1]", key.v_[1], UINT32_C(0x01D594AD));
+	ng += check_number32("test_init abcdefghijklmnopqrstuvwxyz123456, 78, 90 [2]", key.v_[2], UINT32_C(0x8FEC7E65));
+	ng += check_number32("test_init abcdefghijklmnopqrstuvwxyz123456, 78, 90 [3]", key.v_[3], UINT32_C(0x0FFC302B));
+	ng += check_number32("test_init abcdefghijklmnopqrstuvwxyz123456, 78, 90 [4]", key.v_[4], UINT32_C(0x0201AC2E));
+	ng += check_number32("test_init abcdefghijklmnopqrstuvwxyz123456, 78, 90 [5]", key.v_[5], UINT32_C(0x5DE5F28B));
+	ng += check_number32("test_init abcdefghijklmnopqrstuvwxyz123456, 78, 90 [6]", key.v_[6], UINT32_C(0xD44262CC));
+	ng += check_number32("test_init abcdefghijklmnopqrstuvwxyz123456, 78, 90 [7]", key.v_[7], UINT32_C(0xA0F8A154));
 
 	return ng;
 }
