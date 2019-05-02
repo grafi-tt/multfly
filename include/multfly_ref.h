@@ -11,10 +11,10 @@ extern "C" {
 
 static inline multfly_key multfly_init(const multfly_ident *ident, uint64_t global_seed, uint64_t global_ctr);
 static inline multfly_key multfly_split(multfly_key *key);
-static inline void multfly_gen32(const multfly_key *key, uint64_t id, uint32_t ctr, uint32_t r[4]);
-static inline void multfly_gen64(const multfly_key *key, uint64_t id, uint32_t ctr, uint64_t r[4]);
-static inline void multfly_genf32(const multfly_key *key, uint64_t id, uint32_t ctr, float r[4]);
-static inline void multfly_genf64(const multfly_key *key, uint64_t id, uint32_t ctr, double r[4]);
+static inline void multfly_gen32(const multfly_key *key, uint64_t idx, uint32_t ctr, uint32_t out[4]);
+static inline void multfly_gen64(const multfly_key *key, uint64_t idx, uint32_t ctr, uint64_t out[4]);
+static inline void multfly_genf32(const multfly_key *key, uint64_t idx, uint32_t ctr, float out[4]);
+static inline void multfly_genf64(const multfly_key *key, uint64_t idx, uint32_t ctr, double out[4]);
 
 //
 // impl
@@ -126,7 +126,7 @@ static inline void multfly_gen_qround_(uint32_t *a, uint32_t *b, uint32_t *c) {
 	*a += *b;
 }
 
-static inline void multfly_gen_impl_(const multfly_key *key, uint64_t id, uint32_t ctr, uint32_t funct, uint32_t r[4]) {
+static inline void multfly_gen_impl_(const multfly_key *key, uint64_t idx, uint32_t ctr, uint32_t funct, uint32_t out[4]) {
 	uint32_t v[12];
 	v[0] = key->v_[0];
 	v[1] = key->v_[1];
@@ -136,8 +136,8 @@ static inline void multfly_gen_impl_(const multfly_key *key, uint64_t id, uint32
 	v[5] = key->v_[5];
 	v[6] = key->v_[6];
 	v[7] = key->v_[7];
-	v[8] = (uint32_t)id;
-	v[9] = (uint32_t)(id >> 32);
+	v[8] = (uint32_t)idx;
+	v[9] = (uint32_t)(idx >> 32);
 	v[10] = ctr;
 	v[11] = funct;
 
@@ -156,45 +156,45 @@ static inline void multfly_gen_impl_(const multfly_key *key, uint64_t id, uint32
 	multfly_gen_qround_(&v[2], &v[6], &v[10]);
 	multfly_gen_qround_(&v[3], &v[7], &v[11]);
 
-	r[0] = v[0] + v[7];
-	r[1] = v[1] + v[6];
-	r[2] = v[2] + v[5];
-	r[3] = v[3] + v[4];
+	out[0] = v[0] + v[7];
+	out[1] = v[1] + v[6];
+	out[2] = v[2] + v[5];
+	out[3] = v[3] + v[4];
 }
 
-static inline void multfly_gen32(const multfly_key *key, uint64_t id, uint32_t ctr, uint32_t r[4]) {
-	multfly_gen_impl_(key, id, ctr, 0, r);
+static inline void multfly_gen32(const multfly_key *key, uint64_t idx, uint32_t ctr, uint32_t out[4]) {
+	multfly_gen_impl_(key, idx, ctr, 0, out);
 }
 
-static inline void multfly_gen64(const multfly_key *key, uint64_t id, uint32_t ctr, uint64_t r[4]) {
+static inline void multfly_gen64(const multfly_key *key, uint64_t idx, uint32_t ctr, uint64_t out[4]) {
 	uint32_t lo[4];
 	uint32_t hi[4];
-	multfly_gen_impl_(key, id, ctr, 0, lo);
-	multfly_gen_impl_(key, id, ctr, 1, hi);
-	r[0] = lo[0] | ((uint64_t)hi[0] << 32);
-	r[1] = lo[1] | ((uint64_t)hi[1] << 32);
-	r[2] = lo[2] | ((uint64_t)hi[2] << 32);
-	r[3] = lo[3] | ((uint64_t)hi[3] << 32);
+	multfly_gen_impl_(key, idx, ctr, 0, lo);
+	multfly_gen_impl_(key, idx, ctr, 1, hi);
+	out[0] = lo[0] | ((uint64_t)hi[0] << 32);
+	out[1] = lo[1] | ((uint64_t)hi[1] << 32);
+	out[2] = lo[2] | ((uint64_t)hi[2] << 32);
+	out[3] = lo[3] | ((uint64_t)hi[3] << 32);
 }
 
-static inline void multfly_genf32(const multfly_key *key, uint64_t id, uint32_t ctr, float r[4]) {
+static inline void multfly_genf32(const multfly_key *key, uint64_t idx, uint32_t ctr, float out[4]) {
 	uint32_t v[4];
-	multfly_gen_impl_(key, id, ctr, 0, v);
-	r[0] = (float)(v[0] >> 8) * (float)(1.0 / (UINT32_C(1) << 24));
-	r[1] = (float)(v[1] >> 8) * (float)(1.0 / (UINT32_C(1) << 24));
-	r[2] = (float)(v[2] >> 8) * (float)(1.0 / (UINT32_C(1) << 24));
-	r[3] = (float)(v[3] >> 8) * (float)(1.0 / (UINT32_C(1) << 24));
+	multfly_gen_impl_(key, idx, ctr, 0, v);
+	out[0] = (float)(v[0] >> 8) * (float)(1.0 / (UINT32_C(1) << 24));
+	out[1] = (float)(v[1] >> 8) * (float)(1.0 / (UINT32_C(1) << 24));
+	out[2] = (float)(v[2] >> 8) * (float)(1.0 / (UINT32_C(1) << 24));
+	out[3] = (float)(v[3] >> 8) * (float)(1.0 / (UINT32_C(1) << 24));
 }
 
-static inline void multfly_genf64(const multfly_key *key, uint64_t id, uint32_t ctr, double r[4]) {
+static inline void multfly_genf64(const multfly_key *key, uint64_t idx, uint32_t ctr, double out[4]) {
 	uint32_t lo[4];
 	uint32_t hi[4];
-	multfly_gen_impl_(key, id, ctr, 0, lo);
-	multfly_gen_impl_(key, id, ctr, 1, hi);
-	r[0] = ((lo[0] >> 11) | ((uint64_t)hi[0] << 21)) * (1.0 / (UINT64_C(1) << 53));
-	r[1] = ((lo[1] >> 11) | ((uint64_t)hi[1] << 21)) * (1.0 / (UINT64_C(1) << 53));
-	r[2] = ((lo[2] >> 11) | ((uint64_t)hi[2] << 21)) * (1.0 / (UINT64_C(1) << 53));
-	r[3] = ((lo[3] >> 11) | ((uint64_t)hi[3] << 21)) * (1.0 / (UINT64_C(1) << 53));
+	multfly_gen_impl_(key, idx, ctr, 0, lo);
+	multfly_gen_impl_(key, idx, ctr, 1, hi);
+	out[0] = ((lo[0] >> 11) | ((uint64_t)hi[0] << 21)) * (1.0 / (UINT64_C(1) << 53));
+	out[1] = ((lo[1] >> 11) | ((uint64_t)hi[1] << 21)) * (1.0 / (UINT64_C(1) << 53));
+	out[2] = ((lo[2] >> 11) | ((uint64_t)hi[2] << 21)) * (1.0 / (UINT64_C(1) << 53));
+	out[3] = ((lo[3] >> 11) | ((uint64_t)hi[3] << 21)) * (1.0 / (UINT64_C(1) << 53));
 }
 
 #ifdef __cplusplus
