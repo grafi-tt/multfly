@@ -116,7 +116,7 @@ static inline void multfly_gen_qround_(uint32_t *a, uint32_t *b, uint32_t *c) {
 	*b ^= *c;
 	*b *= UINT32_C(2718281829);
 	*a += *b;
-	*a = multfly_rotl_(*a, 21);
+	*a = multfly_rotl_(*a, 11);
 	*c ^= *a;
 	*c *= UINT32_C(3141592653);
 	*b += *c;

@@ -98,7 +98,7 @@ __device__ static inline void multfly_device_gen_round_(uint32_t *a, uint32_t *b
 	*b ^= *c;
 	*b *= 2718281829u;
 	*a += *b;
-	*a = multfly_device_rotl_(*a, 21);
+	*a = multfly_device_rotl_(*a, 11);
 	*c ^= *a;
 	*c *= 3141592653u;
 	*b += *c;

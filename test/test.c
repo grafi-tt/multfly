@@ -106,16 +106,16 @@ int test_gen32() {
 	uint32_t result[4];
 
 	multfly_gen32(&key, 0, 0, result);
-	ng += check_number32("test_gen32 [0]", result[0], UINT32_C(0x19654FAC));
-	ng += check_number32("test_gen32 [1]", result[1], UINT32_C(0xDBCD9879));
-	ng += check_number32("test_gen32 [2]", result[2], UINT32_C(0x8AE67409));
-	ng += check_number32("test_gen32 [3]", result[3], UINT32_C(0xC11CFA8A));
+	ng += check_number32("test_gen32 [0]", result[0], UINT32_C(0x28DAC85C));
+	ng += check_number32("test_gen32 [1]", result[1], UINT32_C(0x0D05143D));
+	ng += check_number32("test_gen32 [2]", result[2], UINT32_C(0xF13F16D2));
+	ng += check_number32("test_gen32 [3]", result[3], UINT32_C(0x5790CBA7));
 
 	multfly_gen32(&key, 100, 0, result);
-	ng += check_number32("test_gen32 [100]", result[0], UINT32_C(0xA7CFA710));
-	ng += check_number32("test_gen32 [101]", result[1], UINT32_C(0xCABB6031));
-	ng += check_number32("test_gen32 [102]", result[2], UINT32_C(0x1F710068));
-	ng += check_number32("test_gen32 [103]", result[3], UINT32_C(0x21EB7B9E));
+	ng += check_number32("test_gen32 [100]", result[0], UINT32_C(0xAC05F32E));
+	ng += check_number32("test_gen32 [101]", result[1], UINT32_C(0xCAF615DD));
+	ng += check_number32("test_gen32 [102]", result[2], UINT32_C(0x81CCDA48));
+	ng += check_number32("test_gen32 [103]", result[3], UINT32_C(0xDC5C5E1A));
 
 	return ng;
 }
@@ -126,16 +126,16 @@ int test_gen64() {
 	uint64_t result[4];
 
 	multfly_gen64(&key, 0, 0, result);
-	ng += check_number64("test_gen64 [0]", result[0], UINT64_C(0x98A55BED19654FAC));
-	ng += check_number64("test_gen64 [1]", result[1], UINT64_C(0x6EBC4103DBCD9879));
-	ng += check_number64("test_gen64 [2]", result[2], UINT64_C(0x3C10CE098AE67409));
-	ng += check_number64("test_gen64 [3]", result[3], UINT64_C(0xB19D51F0C11CFA8A));
+	ng += check_number64("test_gen64 [0]", result[0], UINT64_C(0x1BDCBA9328DAC85C));
+	ng += check_number64("test_gen64 [1]", result[1], UINT64_C(0x65985DB70D05143D));
+	ng += check_number64("test_gen64 [2]", result[2], UINT64_C(0x483C27C0F13F16D2));
+	ng += check_number64("test_gen64 [3]", result[3], UINT64_C(0xE764123A5790CBA7));
 
 	multfly_gen64(&key, 100, 0, result);
-	ng += check_number64("test_gen64 [100]", result[0], UINT64_C(0x39A8B1DBA7CFA710));
-	ng += check_number64("test_gen64 [101]", result[1], UINT64_C(0x25F08229CABB6031));
-	ng += check_number64("test_gen64 [102]", result[2], UINT64_C(0x9AF900EB1F710068));
-	ng += check_number64("test_gen64 [103]", result[3], UINT64_C(0x6FA3902B21EB7B9E));
+	ng += check_number64("test_gen64 [100]", result[0], UINT64_C(0xDD5542F5AC05F32E));
+	ng += check_number64("test_gen64 [101]", result[1], UINT64_C(0x5A190C48CAF615DD));
+	ng += check_number64("test_gen64 [102]", result[2], UINT64_C(0x9AE4C7C581CCDA48));
+	ng += check_number64("test_gen64 [103]", result[3], UINT64_C(0x27A5E2FCDC5C5E1A));
 
 	return ng;
 }

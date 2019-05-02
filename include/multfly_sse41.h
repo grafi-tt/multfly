@@ -100,7 +100,7 @@ static inline void multfly_gen_round_(__m128i *a, __m128i *b, __m128i *c) {
 	*b = _mm_xor_si128(*b, *c);
 	*b = _mm_mullo_epi32(*b, _mm_set1_epi32(UINT32_C(2718281829)));
 	*a = _mm_add_epi32(*a, *b);
-	*a = _mm_or_si128(_mm_slli_epi32(*a, 21), _mm_srli_epi32(*a, 11));
+	*a = _mm_or_si128(_mm_slli_epi32(*a, 11), _mm_srli_epi32(*a, 21));
 	*c = _mm_xor_si128(*c, *a);
 	*c = _mm_mullo_epi32(*c, _mm_set1_epi32(UINT32_C(3141592653)));
 	*b = _mm_add_epi32(*b, *c);
