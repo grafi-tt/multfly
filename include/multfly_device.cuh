@@ -1,5 +1,5 @@
-#ifndef MULTFLY_MULTFLY_CUDA_CUH
-#define MULTFLY_MULTFLY_CUDA_CUH
+#ifndef MULTFLY_MULTFLY_DEVICE_CUH
+#define MULTFLY_MULTFLY_DEVICE_CUH
 
 #include "multfly_types.h"
 
