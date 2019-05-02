@@ -1,5 +1,5 @@
-#ifndef MULTFLY_MULTFLY_SSE41_H
-#define MULTFLY_MULTFLY_SSE41_H
+#ifndef MULTFLY_MULTFLY_SSE41_H_
+#define MULTFLY_MULTFLY_SSE41_H_
 
 #include <emmintrin.h>
 #include <smmintrin.h>

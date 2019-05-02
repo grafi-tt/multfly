@@ -1,5 +1,5 @@
-#ifndef MULTFLY_MULTFLY_REF_H
-#define MULTFLY_MULTFLY_REF_H
+#ifndef MULTFLY_MULTFLY_REF_H_
+#define MULTFLY_MULTFLY_REF_H_
 
 #include "multfly_types.h"
 

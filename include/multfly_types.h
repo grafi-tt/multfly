@@ -1,5 +1,5 @@
-#ifndef MULTFLY_MULTFLY_TYPES_H
-#define MULTFLY_MULTFLY_TYPES_H
+#ifndef MULTFLY_MULTFLY_TYPES_H_
+#define MULTFLY_MULTFLY_TYPES_H_
 
 #ifdef __CUDA_ARCH__
 // stdint.h don't work with NVRTC
