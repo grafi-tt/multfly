@@ -5,28 +5,18 @@
 
 #include <multfly_ref.h>
 
-#ifdef UINT64
-#define BUFLEN 8
-#else
-#define BUFLEN 4
-#endif
-
 uint32_t multfly() {
 	static multfly_key key;
 	static uint64_t id = 0;
-	static uint32_t buf[BUFLEN];
+	static uint32_t buf[4];
 	static int pos = 0;
 	if (pos == 0) {
 		key = multfly_init(NULL, 0, 0);
-		pos = BUFLEN;
+		pos = 4;
 	}
-	if (pos == BUFLEN) {
+	if (pos == 4) {
 		pos = 0;
-#ifdef UINT64
-		multfly_gen64(&key, id++, 0, (uint64_t *)buf);
-#else
 		multfly_gen32(&key, id++, 0, buf);
-#endif
 	}
 	uint32_t r = buf[pos++];
 
