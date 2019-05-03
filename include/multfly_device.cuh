@@ -44,13 +44,13 @@ __device__ static inline void multfly_device_chacha8_permute_(uint32_t *a, uint3
 
 	for (int i = 0; i < 8; i += 2) {
 		multfly_device_chacha_round_(a, b, c, d);
-		*b = __shfl_sync(0xFFFFFFFF, *b, lane + 1, 4);
-		*c = __shfl_xor_sync(0xFFFFFFFF, *c, 2);
-		*d = __shfl_sync(0xFFFFFFFF, *d, lane + 3, 4);
+		*a = __shfl_sync(0xFFFFFFFF, *a, lane + 3, 4);
+		*d = __shfl_xor_sync(0xFFFFFFFF, *d, 2);
+		*c = __shfl_sync(0xFFFFFFFF, *c, lane + 1, 4);
 		multfly_device_chacha_round_(a, b, c, d);
-		*b = __shfl_sync(0xFFFFFFFF, *b, lane + 3, 4);
-		*c = __shfl_xor_sync(0xFFFFFFFF, *c, 2);
-		*d = __shfl_sync(0xFFFFFFFF, *d, lane + 1, 4);
+		*a = __shfl_sync(0xFFFFFFFF, *a, lane + 1, 4);
+		*d = __shfl_xor_sync(0xFFFFFFFF, *d, 2);
+		*c = __shfl_sync(0xFFFFFFFF, *c, lane + 3, 4);
 	}
 }
 
