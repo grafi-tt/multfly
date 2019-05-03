@@ -48,13 +48,13 @@ static inline void multfly_chacha8_permute_(__m128i *a, __m128i *b, __m128i *c, 
 
 	for (int i = 0; i < 8; i += 2) {
 		multfly_chacha_round_(a, b, c, d);
-		*b = _mm_shuffle_epi32(*b, 0x39);
-		*c = _mm_shuffle_epi32(*c, 0x4E);
-		*d = _mm_shuffle_epi32(*d, 0x93);
+		*a = _mm_shuffle_epi32(*a, 0x93);
+		*d = _mm_shuffle_epi32(*d, 0x4E);
+		*c = _mm_shuffle_epi32(*c, 0x39);
 		multfly_chacha_round_(a, b, c, d);
-		*b = _mm_shuffle_epi32(*b, 0x93);
-		*c = _mm_shuffle_epi32(*c, 0x4E);
-		*d = _mm_shuffle_epi32(*d, 0x39);
+		*a = _mm_shuffle_epi32(*a, 0x39);
+		*d = _mm_shuffle_epi32(*d, 0x4E);
+		*c = _mm_shuffle_epi32(*c, 0x93);
 	}
 }
 
