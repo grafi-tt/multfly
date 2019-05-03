@@ -1,13 +1,7 @@
 #ifndef MULTFLY_MULTFLY_TYPES_H_
 #define MULTFLY_MULTFLY_TYPES_H_
 
-#ifdef __CUDA_ARCH__
-// stdint.h don't work with NVRTC
-typedef unsigned int uint32_t;
-typedef unsigned long long uint64_t;
-#else
 #include <stdint.h>
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,12 +16,12 @@ typedef struct multfly_key_ {
 } multfly_key;
 
 #ifdef __cplusplus
-#define MULTFLY_IDENT_CONSTRUCT_ multfly_ident
+#define MULTFLY_IDENT_CONSTRUCT_(...) static_cast<const multfly_ident &>(multfly_ident __VA_ARGS__)
 #else
-#define MULTFLY_IDENT_CONSTRUCT_ (multfly_ident)
+#define MULTFLY_IDENT_CONSTRUCT_(...) ((multfly_ident) __VA_ARGS__)
 #endif
 
-#define MULTFLY_IDENT_LITERAL(literal) (MULTFLY_IDENT_CONSTRUCT_ {{ \
+#define MULTFLY_IDENT_LITERAL(literal) MULTFLY_IDENT_CONSTRUCT_({{ \
 	(uint32_t)(literal "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")[-(sizeof(literal) > 33)] /* Literal MUST NOT have more than 32 letters. */ | \
 	((uint32_t)(literal "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")[1] << 8) | \
 	((uint32_t)(literal "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")[2] << 16) | \

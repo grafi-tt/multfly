@@ -19,6 +19,9 @@ __device__ static inline uint64_t multfly_device_gen64(const multfly_key *key, u
 __device__ static inline float multfly_device_genf32(const multfly_key *key, uint64_t idx, uint32_t ctr);
 __device__ static inline double multfly_device_genf64(const multfly_key *key, uint64_t idx, uint32_t ctr);
 
+#define multfly_device_init_by_literal(literal, global_seed, global_ctr) \
+	multfly_device_init(&MULTFLY_IDENT_LITERAL(literal), global_seed, global_ctr)
+
 //
 // impl
 //
