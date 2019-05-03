@@ -12,15 +12,15 @@ extern "C" {
 #define __shfl_xor_sync(mask, ...) __shfl_xor(__VA_ARGS__)
 #endif
 
-__device__ static void multfly_device_init(multfly_key *key, const multfly_ident *ident, uint64_t global_seed, uint64_t global_ctr);
-__device__ static inline multfly_key multfly_device_split(multfly_key *key);
+__device__ static void multfly_device_initkey(multfly_key *key, const multfly_name *name, uint64_t global_seed, uint64_t global_ctr);
+__device__ static void multfly_device_splitkey(multfly_key *key, multfly_key *newkey);
 __device__ static inline uint32_t multfly_device_gen32(const multfly_key *key, uint64_t idx, uint32_t ctr);
 __device__ static inline uint64_t multfly_device_gen64(const multfly_key *key, uint64_t idx, uint32_t ctr);
 __device__ static inline float multfly_device_genf32(const multfly_key *key, uint64_t idx, uint32_t ctr);
 __device__ static inline double multfly_device_genf64(const multfly_key *key, uint64_t idx, uint32_t ctr);
 
-#define multfly_device_init_by_literal(key, literal, global_seed, global_ctr) \
-	multfly_device_init(key, &MULTFLY_IDENT_LITERAL(literal), global_seed, global_ctr)
+#define multfly_device_initkey_fromliteral(key, literal, global_seed, global_ctr) \
+	multfly_device_initkey(key, &MULTFLY_NAME_LITERAL(literal), global_seed, global_ctr)
 
 //
 // impl
@@ -57,14 +57,14 @@ __device__ static inline void multfly_device_chacha8_permute_(uint32_t *a, uint3
 	}
 }
 
-__device__ static inline void multfly_device_init(multfly_key *key, const multfly_ident *ident, uint64_t global_seed, uint64_t global_ctr) {
+__device__ static inline void multfly_device_initkey(multfly_key *key, const multfly_name *name, uint64_t global_seed, uint64_t global_ctr) {
 	int lane = threadIdx.x & 3;
 	uint32_t a;
 	uint32_t b = 0;
 	uint32_t c = 0;
-	if (ident) {
-		b = ident->v[lane];
-		c = ident->v[lane + 4];
+	if (name) {
+		b = name->v[lane];
+		c = name->v[lane + 4];
 	}
 	uint64_t d64 = lane & 2 ? global_seed : global_ctr;
 	uint32_t d = lane & 1 ? (uint32_t)(d64 >> 32) : (uint32_t)d64;
@@ -75,7 +75,7 @@ __device__ static inline void multfly_device_init(multfly_key *key, const multfl
 	key->v_[lane + 4] = b;
 }
 
-__device__ static inline multfly_key multfly_device_split(multfly_key *key) {
+__device__ static inline void multfly_device_splitkey(multfly_key *key, multfly_key *newkey) {
 	int lane = threadIdx.x & 3;
 	uint32_t a;
 	uint32_t b = key->v_[lane];
@@ -86,11 +86,8 @@ __device__ static inline multfly_key multfly_device_split(multfly_key *key) {
 
 	key->v_[lane] = a;
 	key->v_[lane + 4] = b;
-
-	multfly_key newkey;
-	newkey.v_[lane] = c;
-	newkey.v_[lane + 4] = d;
-	return newkey;
+	newkey->v_[lane] = c;
+	newkey->v_[lane + 4] = d;
 }
 
 __device__ static inline void multfly_device_gen_round_(uint32_t *a, uint32_t *b, uint32_t *c) {

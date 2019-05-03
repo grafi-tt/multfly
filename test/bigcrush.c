@@ -11,7 +11,7 @@ uint32_t multfly() {
 	static uint32_t buf[4];
 	static int pos = 0;
 	if (pos == 0) {
-		key = multfly_init(NULL, 0, 0);
+		multfly_initkey(&key, NULL, 0, 0);
 		pos = 4;
 	}
 	if (pos == 4) {

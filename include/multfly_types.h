@@ -7,21 +7,21 @@
 extern "C" {
 #endif
 
-typedef struct multfly_ident_ {
+typedef struct multfly_name_ {
 	uint32_t v[8];
-} multfly_ident;
+} multfly_name;
 
 typedef struct multfly_key_ {
 	uint32_t v_[8];
 } multfly_key;
 
 #ifdef __cplusplus
-#define MULTFLY_IDENT_CONSTRUCT_(...) static_cast<const multfly_ident &>(multfly_ident __VA_ARGS__)
+#define MULTFLY_NAME_CONSTRUCT_(...) static_cast<const multfly_name &>(multfly_name __VA_ARGS__)
 #else
-#define MULTFLY_IDENT_CONSTRUCT_(...) ((multfly_ident) __VA_ARGS__)
+#define MULTFLY_NAME_CONSTRUCT_(...) ((multfly_name) __VA_ARGS__)
 #endif
 
-#define MULTFLY_IDENT_LITERAL(literal) MULTFLY_IDENT_CONSTRUCT_({{ \
+#define MULTFLY_NAME_LITERAL(literal) MULTFLY_NAME_CONSTRUCT_({{ \
 	(uint32_t)(literal "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")[-(sizeof(literal) > 33)] /* Literal MUST NOT have more than 32 letters. */ | \
 	((uint32_t)(literal "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")[1] << 8) | \
 	((uint32_t)(literal "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0")[2] << 16) | \

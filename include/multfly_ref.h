@@ -7,15 +7,15 @@
 extern "C" {
 #endif
 
-static inline multfly_key multfly_init(const multfly_ident *ident, uint64_t global_seed, uint64_t global_ctr);
-static inline multfly_key multfly_split(multfly_key *key);
+static inline void multfly_initkey(multfly_key *key, const multfly_name *name, uint64_t global_seed, uint64_t global_ctr);
+static inline void multfly_splitkey(multfly_key *key, multfly_key *newkey);
 static inline void multfly_gen32(const multfly_key *key, uint64_t idx, uint32_t ctr, uint32_t out[4]);
 static inline void multfly_gen64(const multfly_key *key, uint64_t idx, uint32_t ctr, uint64_t out[4]);
 static inline void multfly_genf32(const multfly_key *key, uint64_t idx, uint32_t ctr, float out[4]);
 static inline void multfly_genf64(const multfly_key *key, uint64_t idx, uint32_t ctr, double out[4]);
 
-#define multfly_init_by_literal(literal, global_seed, global_ctr) \
-	multfly_init(&MULTFLY_IDENT_LITERAL(literal), global_seed, global_ctr)
+#define multfly_initkey_fromliteral(key, literal, global_seed, global_ctr) \
+	multfly_initkey(key, &MULTFLY_NAME_LITERAL(literal), global_seed, global_ctr)
 
 //
 // impl
@@ -57,20 +57,20 @@ static inline void multfly_chacha8_permute_(uint32_t v[16]) {
 	}
 }
 
-static inline multfly_key multfly_init(const multfly_ident *ident, uint64_t global_seed, uint64_t global_ctr) {
+static inline void multfly_initkey(multfly_key *key, const multfly_name *name, uint64_t global_seed, uint64_t global_ctr) {
 	uint32_t v[16];
 	for (int i = 4; i < 12; i++) {
 		v[i] = 0;
 	}
-	if (ident) {
-		v[4]  = ident->v[0];
-		v[5]  = ident->v[1];
-		v[6]  = ident->v[2];
-		v[7]  = ident->v[3];
-		v[8]  = ident->v[4];
-		v[9]  = ident->v[5];
-		v[10] = ident->v[6];
-		v[11] = ident->v[7];
+	if (name) {
+		v[4]  = name->v[0];
+		v[5]  = name->v[1];
+		v[6]  = name->v[2];
+		v[7]  = name->v[3];
+		v[8]  = name->v[4];
+		v[9]  = name->v[5];
+		v[10] = name->v[6];
+		v[11] = name->v[7];
 	}
 	v[12] = (uint32_t)global_ctr;
 	v[13] = (uint32_t)(global_ctr >> 32);
@@ -79,14 +79,12 @@ static inline multfly_key multfly_init(const multfly_ident *ident, uint64_t glob
 
 	multfly_chacha8_permute_(v);
 
-	multfly_key newkey;
 	for (int i = 0; i < 8; i++) {
-		newkey.v_[i] = v[i];
+		key->v_[i] = v[i];
 	}
-	return newkey;
 }
 
-static inline multfly_key multfly_split(multfly_key *key) {
+static inline void multfly_splitkey(multfly_key *key, multfly_key *newkey) {
 	uint32_t v[16];
 	v[4]  = key->v_[0];
 	v[5]  = key->v_[1];
@@ -104,13 +102,8 @@ static inline multfly_key multfly_split(multfly_key *key) {
 
 	for (int i = 0; i < 8; i++) {
 		key->v_[i] = v[i];
+		newkey->v_[i] = v[i + 8];
 	}
-
-	multfly_key newkey;
-	for (int i = 0; i < 8; i++) {
-		newkey.v_[i] = v[i + 8];
-	}
-	return newkey;
 }
 
 static inline void multfly_gen_qround_(uint32_t *a, uint32_t *b, uint32_t *c) {

@@ -34,7 +34,8 @@ int check_number64(char *title, uint64_t result, uint64_t expected) {
 int test_init() {
 	int ng = 0;
 
-	multfly_key keyn = multfly_init(NULL, 0, 0);
+	multfly_key keyn;
+	multfly_initkey(&keyn, NULL, 0, 0);
 	ng += check_number32("test_init NULL, 0, 0 [0]", keyn.v_[0], UINT32_C(0x5A7F760C));
 	ng += check_number32("test_init NULL, 0, 0 [1]", keyn.v_[1], UINT32_C(0xE3ABAB0B));
 	ng += check_number32("test_init NULL, 0, 0 [2]", keyn.v_[2], UINT32_C(0xECBCFCC9));
@@ -44,8 +45,9 @@ int test_init() {
 	ng += check_number32("test_init NULL, 0, 0 [6]", keyn.v_[6], UINT32_C(0x0A66CADF));
 	ng += check_number32("test_init NULL, 0, 0 [7]", keyn.v_[7], UINT32_C(0x16926033));
 
-	multfly_ident ident0 = {0};
-	multfly_key key0 = multfly_init(&ident0, 0, 0);
+	multfly_name name0 = {0};
+	multfly_key key0;
+	multfly_initkey(&key0, &name0, 0, 0);
 	ng += check_number32("test_init {0}, 0, 0 [0]", key0.v_[0], keyn.v_[0]);
 	ng += check_number32("test_init {0}, 0, 0 [1]", key0.v_[1], keyn.v_[1]);
 	ng += check_number32("test_init {0}, 0, 0 [2]", key0.v_[2], keyn.v_[2]);
@@ -55,7 +57,8 @@ int test_init() {
 	ng += check_number32("test_init {0}, 0, 0 [6]", key0.v_[6], keyn.v_[6]);
 	ng += check_number32("test_init {0}, 0, 0 [7]", key0.v_[7], keyn.v_[7]);
 
-	multfly_key key = multfly_init_by_literal("abcdefghijklmnopqrstuvwxyz123456", 78, 90);
+	multfly_key key;
+	multfly_initkey_fromliteral(&key, "abcdefghijklmnopqrstuvwxyz123456", 78, 90);
 	ng += check_number32("test_init abcdefghijklmnopqrstuvwxyz123456, 78, 90 [0]", key.v_[0], UINT32_C(0x1FCE68FA));
 	ng += check_number32("test_init abcdefghijklmnopqrstuvwxyz123456, 78, 90 [1]", key.v_[1], UINT32_C(0x01D594AD));
 	ng += check_number32("test_init abcdefghijklmnopqrstuvwxyz123456, 78, 90 [2]", key.v_[2], UINT32_C(0x8FEC7E65));
@@ -70,7 +73,8 @@ int test_init() {
 
 int test_gen32() {
 	int ng = 0;
-	multfly_key key = multfly_init(NULL, 0, 0);
+	multfly_key key;
+	multfly_initkey(&key, NULL, 0, 0);
 	uint32_t result[4];
 
 	multfly_gen32(&key, 0, 0, result);
@@ -90,7 +94,8 @@ int test_gen32() {
 
 int test_gen64() {
 	int ng = 0;
-	multfly_key key = multfly_init(NULL, 0, 0);
+	multfly_key key;
+	multfly_initkey(&key, NULL, 0, 0);
 	uint64_t result[4];
 
 	multfly_gen64(&key, 0, 0, result);
@@ -110,7 +115,8 @@ int test_gen64() {
 
 int test_genf32() {
 	int ng = 0;
-	multfly_key key = multfly_init(NULL, 0, 0);
+	multfly_key key;
+	multfly_initkey(&key, NULL, 0, 0);
 
 	uint32_t u32_result[4];
 	float f32_result[4];
@@ -135,7 +141,8 @@ int test_genf32() {
 
 int test_genf64() {
 	int ng = 0;
-	multfly_key key = multfly_init(NULL, 0, 0);
+	multfly_key key;
+	multfly_initkey(&key, NULL, 0, 0);
 
 	uint64_t u64_result[4];
 	double f64_result[4];

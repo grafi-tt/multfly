@@ -17,7 +17,7 @@
 #define TEST_KEY_NAME "multfly_test"
 
 __global__ void init_key(multfly_key *key, uint64_t global_seed, uint64_t global_ctr) {
-	multfly_device_init_by_literal(key, TEST_KEY_NAME, global_seed, global_ctr);
+	multfly_device_initkey_fromliteral(key, TEST_KEY_NAME, global_seed, global_ctr);
 }
 
 __global__ void generate_u32(const multfly_key *key, uint32_t *result0, uint32_t *result1) {
@@ -41,7 +41,7 @@ int main() {
 
 	multfly_key h_key, h_key_test;
 	CUDA_CHECK(cudaMemcpy(&h_key, d_key, sizeof(multfly_key), cudaMemcpyDeviceToHost));
-	h_key_test = multfly_init_by_literal(TEST_KEY_NAME, global_seed, global_ctr);
+	multfly_initkey_fromliteral(&h_key_test, TEST_KEY_NAME, global_seed, global_ctr);
 	for (int i = 0; i < 8; i++) {
 		if (h_key.v_[i] != h_key_test.v_[i]) {
 			ng = 1;
