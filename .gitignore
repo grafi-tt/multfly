@@ -3,3 +3,4 @@ test/test_sse41
 test/test_cuda
 test/bigcrush
 test/bigcrush_bitrev
+test/bigcrush_graycode

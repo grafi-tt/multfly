@@ -7,7 +7,7 @@
 
 uint32_t multfly() {
 	static multfly_key key;
-	static uint64_t id = 0;
+	static uint64_t idx = 0;
 	static uint32_t buf[4];
 	static int pos = 0;
 	if (pos == 0) {
@@ -16,7 +16,13 @@ uint32_t multfly() {
 	}
 	if (pos == 4) {
 		pos = 0;
-		multfly_gen32(&key, id++, 0, buf);
+#ifdef GRAYCODE
+		uint64_t idx_passed = idx ^ (idx >> 1);
+#else
+		uint64_t idx_passed = idx;
+#endif
+		multfly_gen32(&key, idx_passed, 0, buf);
+		idx++;
 	}
 	uint32_t r = buf[pos++];
 
