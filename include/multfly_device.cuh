@@ -29,65 +29,82 @@ __device__ static inline uint32_t multfly_device_rotl_(uint32_t k, int n) {
 	return (k << n) | (k >> (32 - n));
 }
 
-__device__ static inline void multfly_device_chacha_round_(uint32_t *a, uint32_t *b, uint32_t *c, uint32_t *d) {
+__device__ static inline void multfly_device_chacha_qround_(uint32_t *a, uint32_t *b, uint32_t *c, uint32_t *d) {
 	*a += *b;
-	*d = multfly_device_rotl_(*d ^ *a, 16);
+	*d ^= *a;
+	*d = multfly_device_rotl_(*d, 16);
 	*c += *d;
-	*b = multfly_device_rotl_(*b ^ *c, 12);
+	*b ^= *c;
+	*b = multfly_device_rotl_(*b, 12);
 	*a += *b;
-	*d = multfly_device_rotl_(*d ^ *a, 8);
+	*d ^= *a;
+	*d = multfly_device_rotl_(*d, 8);
 	*c += *d;
-	*b = multfly_device_rotl_(*b ^ *c, 7);
+	*b ^= *c;
+	*b = multfly_device_rotl_(*b, 7);
 }
 
-__device__ static inline void multfly_device_chacha8_permute_(uint32_t *a, uint32_t *b, uint32_t *c, uint32_t *d) {
-	int lane = threadIdx.x & 3;
-	static const uint32_t iv[4] = {2718281829u, 3141592653u, 1234567891u, 2345678910u};
-	*a = iv[lane];
+__device__ static inline void multfly_device_chacha8_permute_(uint32_t v[16]) {
+	v[0] = 2718281829u;
+	v[1] = 3141592653u;
+	v[2] = 1234567891u;
+	v[3] = 2345678910u;
 
 	for (int i = 0; i < 8; i += 2) {
-		multfly_device_chacha_round_(a, b, c, d);
-		*a = __shfl_sync(0xFFFFFFFF, *a, lane + 3, 4);
-		*d = __shfl_xor_sync(0xFFFFFFFF, *d, 2);
-		*c = __shfl_sync(0xFFFFFFFF, *c, lane + 1, 4);
-		multfly_device_chacha_round_(a, b, c, d);
-		*a = __shfl_sync(0xFFFFFFFF, *a, lane + 1, 4);
-		*d = __shfl_xor_sync(0xFFFFFFFF, *d, 2);
-		*c = __shfl_sync(0xFFFFFFFF, *c, lane + 3, 4);
+		multfly_device_chacha_qround_(&v[0], &v[4], &v[ 8], &v[12]);
+		multfly_device_chacha_qround_(&v[1], &v[5], &v[ 9], &v[13]);
+		multfly_device_chacha_qround_(&v[2], &v[6], &v[10], &v[14]);
+		multfly_device_chacha_qround_(&v[3], &v[7], &v[11], &v[15]);
+		multfly_device_chacha_qround_(&v[0], &v[5], &v[10], &v[15]);
+		multfly_device_chacha_qround_(&v[1], &v[6], &v[11], &v[12]);
+		multfly_device_chacha_qround_(&v[2], &v[7], &v[ 8], &v[13]);
+		multfly_device_chacha_qround_(&v[3], &v[4], &v[ 9], &v[14]);
 	}
 }
 
 __device__ static inline void multfly_device_initkey(multfly_key *key, const multfly_name *name, uint64_t global_seed, uint64_t global_ctr) {
-	int lane = threadIdx.x & 3;
-	uint32_t a;
-	uint32_t b = 0;
-	uint32_t c = 0;
-	if (name) {
-		b = name->v[lane];
-		c = name->v[lane + 4];
+	uint32_t v[16];
+#pragma unroll
+	for (int i = 0; i < 8; i++) {
+		v[i + 4] = 0;
 	}
-	uint64_t d64 = lane & 2 ? global_seed : global_ctr;
-	uint32_t d = lane & 1 ? (uint32_t)(d64 >> 32) : (uint32_t)d64;
+	if (name) {
+#pragma unroll
+		for (int i = 0; i < 8; i++) {
+			v[i + 4] = name->v[i];
+		}
+	}
+	v[12] = (uint32_t)global_ctr;
+	v[13] = (uint32_t)(global_ctr >> 32);
+	v[14] = (uint32_t)global_seed;
+	v[15] = (uint32_t)(global_seed >> 32);
 
-	multfly_device_chacha8_permute_(&a, &b, &c, &d);
+	multfly_device_chacha8_permute_(v);
 
-	key->v_[lane] = a;
-	key->v_[lane + 4] = b;
+#pragma unroll
+	for (int i = 0; i < 8; i++) {
+		key->v_[i] = v[i];
+	}
 }
 
 __device__ static inline void multfly_device_splitkey(multfly_key *key, multfly_key *newkey) {
-	int lane = threadIdx.x & 3;
-	uint32_t a;
-	uint32_t b = key->v_[lane];
-	uint32_t c = key->v_[lane + 4];
-	uint32_t d = 0;
+	uint32_t v[16];
+#pragma unroll
+	for (int i = 0; i < 8; i++) {
+		v[i + 4] = key->v_[i];
+	}
+	v[12] = 0;
+	v[13] = 0;
+	v[14] = 0;
+	v[15] = 0;
 
-	multfly_device_chacha8_permute_(&a, &b, &c, &d);
+	multfly_device_chacha8_permute_(v);
 
-	key->v_[lane] = a;
-	key->v_[lane + 4] = b;
-	newkey->v_[lane] = c;
-	newkey->v_[lane + 4] = d;
+#pragma unroll
+	for (int i = 0; i < 8; i++) {
+		key->v_[i] = v[i];
+		newkey->v_[i] = v[i + 8];
+	}
 }
 
 __device__ static inline void multfly_device_gen_round_(uint32_t *a, uint32_t *b, uint32_t *c) {
@@ -104,8 +121,9 @@ __device__ static inline void multfly_device_gen_round_(uint32_t *a, uint32_t *b
 	*a ^= *b;
 }
 
-__device__ static inline uint32_t multfly_device_gen_impl_(const multfly_key *key, uint64_t idx, uint64_t ctr_funct) {
-	int lane = threadIdx.x & 3;
+__device__ static inline uint32_t multfly_device_gen_impl_(const multfly_key *key, uint64_t tid, uint64_t ctr_funct) {
+	uint64_t idx = tid >> 2;
+	int lane = tid & 3;
 	uint32_t a = key->v_[lane];
 	uint32_t b = key->v_[lane + 4];
 	uint64_t c64 = lane & 2 ? ctr_funct : idx;
@@ -122,24 +140,24 @@ __device__ static inline uint32_t multfly_device_gen_impl_(const multfly_key *ke
 	return a + __shfl_xor_sync(0xFFFFFFFF, b, 3);
 }
 
-__device__ static inline uint32_t multfly_device_gen32(const multfly_key *key, uint64_t idx, uint32_t ctr) {
-	return multfly_device_gen_impl_(key, idx, ctr);
+__device__ static inline uint32_t multfly_device_gen32(const multfly_key *key, uint64_t tid, uint32_t ctr) {
+	return multfly_device_gen_impl_(key, tid, ctr);
 }
 
-__device__ static inline uint64_t multfly_device_gen64(const multfly_key *key, uint64_t idx, uint32_t ctr) {
-	uint32_t lo = multfly_device_gen_impl_(key, idx, ctr);
-	uint32_t hi = multfly_device_gen_impl_(key, idx, ctr | (1ull << 32));
+__device__ static inline uint64_t multfly_device_gen64(const multfly_key *key, uint64_t tid, uint32_t ctr) {
+	uint32_t lo = multfly_device_gen_impl_(key, tid, ctr);
+	uint32_t hi = multfly_device_gen_impl_(key, tid, ctr | (1ull << 32));
 	return lo | ((uint64_t)hi << 32);
 }
 
-__device__ static inline float multfly_device_genf32(const multfly_key *key, uint64_t idx, uint32_t ctr) {
-	uint32_t v = multfly_device_gen_impl_(key, idx, ctr);
+__device__ static inline float multfly_device_genf32(const multfly_key *key, uint64_t tid, uint32_t ctr) {
+	uint32_t v = multfly_device_gen_impl_(key, tid, ctr);
 	return (float)(v >> 8) * (float)(1.0 / (1 << 24));
 }
 
-__device__ static inline double multfly_device_genf64(const multfly_key *key, uint64_t idx, uint32_t ctr) {
-	uint32_t lo = multfly_device_gen_impl_(key, idx, ctr);
-	uint32_t hi = multfly_device_gen_impl_(key, idx, ctr | (1ull << 32));
+__device__ static inline double multfly_device_genf64(const multfly_key *key, uint64_t tid, uint32_t ctr) {
+	uint32_t lo = multfly_device_gen_impl_(key, tid, ctr);
+	uint32_t hi = multfly_device_gen_impl_(key, tid, ctr | (1ull << 32));
 	return ((lo | ((uint64_t)hi << 32)) >> 11) * (1.0 / (1ull << 53));
 }
 

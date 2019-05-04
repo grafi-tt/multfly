@@ -21,9 +21,9 @@ __global__ void init_key(multfly_key *key, uint64_t global_seed, uint64_t global
 }
 
 __global__ void generate_u32(const multfly_key *key, uint32_t *result0, uint32_t *result1) {
-	uint64_t id = blockIdx.x * blockDim.x + threadIdx.x;
-	result0[id] = multfly_device_gen32(key, id >> 2, 0);
-	result1[id] = multfly_device_gen32(key, id >> 2, 1);
+	uint64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+	result0[tid] = multfly_device_gen32(key, tid, 0);
+	result1[tid] = multfly_device_gen32(key, tid, 1);
 }
 
 int main() {
@@ -36,7 +36,7 @@ int main() {
 
 	multfly_key *d_key;
 	CUDA_CHECK(cudaMalloc(&d_key, sizeof(multfly_key)));
-	init_key<<<1, 4>>>(d_key, global_seed, global_ctr);
+	init_key<<<1, 1>>>(d_key, global_seed, global_ctr);
 	CUDA_CHECK(cudaDeviceSynchronize());
 
 	multfly_key h_key, h_key_test;

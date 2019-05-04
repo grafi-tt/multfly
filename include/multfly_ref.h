@@ -40,10 +40,10 @@ static inline void multfly_chacha_qround_(uint32_t *a, uint32_t *b, uint32_t *c,
 }
 
 static inline void multfly_chacha8_permute_(uint32_t v[16]) {
-	v[0]  = UINT32_C(2718281829);
-	v[1]  = UINT32_C(3141592653);
-	v[2]  = UINT32_C(1234567891);
-	v[3]  = UINT32_C(2345678910);
+	v[0] = UINT32_C(2718281829);
+	v[1] = UINT32_C(3141592653);
+	v[2] = UINT32_C(1234567891);
+	v[3] = UINT32_C(2345678910);
 
 	for (int i = 0; i < 8; i += 2) {
 		multfly_chacha_qround_(&v[0], &v[4], &v[ 8], &v[12]);
@@ -59,18 +59,13 @@ static inline void multfly_chacha8_permute_(uint32_t v[16]) {
 
 static inline void multfly_initkey(multfly_key *key, const multfly_name *name, uint64_t global_seed, uint64_t global_ctr) {
 	uint32_t v[16];
-	for (int i = 4; i < 12; i++) {
-		v[i] = 0;
+	for (int i = 0; i < 8; i++) {
+		v[i + 4] = 0;
 	}
 	if (name) {
-		v[4]  = name->v[0];
-		v[5]  = name->v[1];
-		v[6]  = name->v[2];
-		v[7]  = name->v[3];
-		v[8]  = name->v[4];
-		v[9]  = name->v[5];
-		v[10] = name->v[6];
-		v[11] = name->v[7];
+		for (int i = 0; i < 8; i++) {
+			v[i + 4] = name->v[i];
+		}
 	}
 	v[12] = (uint32_t)global_ctr;
 	v[13] = (uint32_t)(global_ctr >> 32);
@@ -86,17 +81,13 @@ static inline void multfly_initkey(multfly_key *key, const multfly_name *name, u
 
 static inline void multfly_splitkey(multfly_key *key, multfly_key *newkey) {
 	uint32_t v[16];
-	v[4]  = key->v_[0];
-	v[5]  = key->v_[1];
-	v[6]  = key->v_[2];
-	v[7]  = key->v_[3];
-	v[8]  = key->v_[4];
-	v[9]  = key->v_[5];
-	v[10] = key->v_[6];
-	v[11] = key->v_[7];
-	for (int i = 12; i < 16; i++) {
-		v[i] = 0;
+	for (int i = 0; i < 8; i++) {
+		v[i + 4] = key->v_[i];
 	}
+	v[12] = 0;
+	v[13] = 0;
+	v[14] = 0;
+	v[15] = 0;
 
 	multfly_chacha8_permute_(v);
 
