@@ -1,3 +1,12 @@
+# The development is moved to melty2
+
+Multfly is abandoned and I'm developing another PRNG [melty2](https://github.com/grafi-tt/melty2).
+
+The reasons of the decision are:
+
+* Assuming 4-way SIMD introduces severe difficulty of programming. When I trying to write rejection sampling by CUDA, it became evident masking correct CUDA thread is a big burden for users.
+* Some accelerators might lack integer multiplication to minimize their circuits.
+
 # Multfly pseudo-random number generator
 NOTE: it is still in very early stage of development.
 
